@@ -1,0 +1,44 @@
+root = true
+
+[*]
+indent_style = space
+indent_size = 2
+end_of_line = lf
+charset = utf-8
+trim_trailing_whitespace = true
+insert_final_newline = true
+
+[*.{go,mod,sum}]
+indent_style = tab
+indent_size = 4
+
+[*.{ts,tsx,js,jsx,json,html,scss,css,md,yaml,yml}]
+indent_style = space
+indent_size = 2
+
+[*.{sql}]
+indent_style = space
+indent_size = 2
+
+[Makefile]
+indent_style = tab
+
+[*.{proto,thrift}]
+indent_style = space
+indent_size = 2
+
+[*.{yml,yaml}]
+indent_size = 2
+
+[*.toml]
+indent_style = space
+indent_size = 2
+
+[*.sh]
+indent_style = space
+indent_size = 2
+end_of_line = lf
+
+[Dockerfile*]
+indent_style = space
+indent_size = 2

@@ -1,0 +1,151 @@
+run:
+  timeout: 5m
+  go: "1.23"
+  modules-download-mode: readonly
+  concurrency: 4
+  tests: true
+  build-tags: []
+
+output:
+  format: colored-line-number
+  print-issued-lines: true
+  print-linter-name: true
+  uniq-by-line: true
+
+linters:
+  enable:
+    - errcheck
+    - gosimple
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
+    - misspell
+    - prealloc
+    - bodyclose
+    - noctx
+    - rowserr
+    - sqlclosecheck
+    - errorlint
+    - goconst
+    - gocritic
+    - gocyclo
+    - gofmt
+    - goimports
+    - gosec
+    - lll
+    - nestif
+    - nilnil
+    - prealloc
+    - protogetter
+    - reassign
+    - stylecheck
+    - typecheck
+    - unconvert
+    - unparam
+    - whitespace
+    - varnamelen
+    - exhaustruct
+    - wrapcheck
+    - paralleltest
+    - testifylint
+    - tparallel
+    - tenv
+    - thelper
+  disable:
+    - gochecknoglobals
+    - gochecknoinits
+    - funlen
+    - gomnd
+    - lll
+    - wsl
+
+linters-settings:
+  govet:
+    check-shadowing: true
+    enable-all: true
+    disable:
+      - fieldalignment
+  gocyclo:
+    min-complexity: 15
+  goconst:
+    min-len: 3
+    min-occurrences: 3
+  gocritic:
+    enabled-tags:
+      - diagnostic
+      - experimental
+      - opinionated
+      - performance
+      - style
+    disabled-checks:
+      - dupImport
+      - ifElseChain
+      - singleCaseSwitch
+      - typeSwitchVar
+      - wrapperFunc
+  lll:
+    line-length: 120
+  nestif:
+    min-complexity: 4
+  stylecheck:
+    checks:
+      - all
+      - -ST1000
+      - -ST1003
+      - -ST1016
+      - -ST1020
+      - -ST1021
+      - -ST1022
+      - -ST1023
+  varnamelen:
+    min-length: 2
+    max-distance: 10
+    ignore-names:
+      - "id"
+      - "db"
+      - "tx"
+      - "ctx"
+      - "tx"
+      - "ok"
+      - "rt"
+  wrapcheck:
+    ignoreSigs:
+      - .Errorf\(
+      - errors.New\(
+      - fmt.Errorf\(
+  exhaustruct:
+    include:
+      - github.com/yourtime/backend/internal/domain/.*\..*
+  testifylint:
+    enable-all: true
+    disable:
+      - require-error
+
+issues:
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - goconst
+        - gocyclo
+        - dupl
+        - lll
+        - nestif
+        - funlen
+        - wrapcheck
+    - path: internal/infrastructure/persistence/postgres/sqlc/
+      linters:
+        - lll
+        - goconst
+    - path: cmd/server/wire_gen\.go
+      linters:
+        - lll
+    - text: "Error return value of .* is not checked"
+      linters:
+        - errcheck
+    - text: "exported (var|func|method|type) .* should have comment"
+      linters:
+        - stylecheck
+
+  max-issues-per-linter: 0
+  max-same-issues: 0
