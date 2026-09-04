@@ -1,0 +1,161 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: yourtime-postgres
+    environment:
+      POSTGRES_DB: yourtime
+      POSTGRES_USER: yourtime
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-yourtime_dev}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres/init:/docker-entrypoint-initdb.d:ro
+      - ./postgres/postgresql.conf:/etc/postgresql/postgresql.conf:ro
+    command: ["postgres", "-c", "config_file=/etc/postgresql/postgresql.conf"]
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U yourtime -d yourtime"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - yourtime-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: yourtime-redis
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - yourtime-network
+
+  minio:
+    image: minio/minio:latest
+    container_name: yourtime-minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-yourtime}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-yourtime_dev}
+    volumes:
+      - minio_data:/data
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - yourtime-network
+
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: yourtime-mailpit
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    networks:
+      - yourtime-network
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: yourtime-caddy
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    environment:
+      - ACME_AGREE=true
+      - ACME_EMAIL=${CADDY_EMAIL:-admin@yourtime.local}
+    depends_on:
+      - backend
+      - web
+    networks:
+      - yourtime-network
+
+  backend:
+    build:
+      context: ../..
+      dockerfile: infra/docker/Dockerfile.backend
+    container_name: yourtime-backend
+    environment:
+      - APP_ENV=development
+      - APP_PORT=8080
+      - DATABASE_URL=postgres://yourtime:${DB_PASSWORD:-yourtime_dev}@postgres:5432/yourtime?sslmode=disable
+      - REDIS_URL=redis://redis:6379
+      - MINIO_ENDPOINT=minio:9000
+      - MINIO_ACCESS_KEY=${MINIO_ROOT_USER:-yourtime}
+      - MINIO_SECRET_KEY=${MINIO_ROOT_PASSWORD:-yourtime_dev}
+      - MINIO_BUCKET=yourtime
+      - MINIO_USE_SSL=false
+      - JWT_SECRET=${JWT_SECRET:-dev-secret-change-me-32-chars-minimum}
+      - JWT_ACCESS_TTL=15m
+      - JWT_REFRESH_TTL=7d
+      - SMTP_HOST=mailpit
+      - SMTP_PORT=1025
+      - EMAIL_FROM=noreply@yourtime.local
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
+      - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
+      - MERCADOPAGO_ACCESS_TOKEN=${MERCADOPAGO_ACCESS_TOKEN}
+      - MERCADOPAGO_WEBHOOK_SECRET=${MERCADOPAGO_WEBHOOK_SECRET}
+      - FEATURE_WEBSOCKETS=true
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    networks:
+      - yourtime-network
+    volumes:
+      - ../../apps/backend:/app
+      - /app/bin
+    command: air -c .air.toml
+
+  web:
+    build:
+      context: ../..
+      dockerfile: infra/docker/Dockerfile.web
+    container_name: yourtime-web
+    environment:
+      - NODE_ENV=development
+    ports:
+      - "4200:4200"
+    volumes:
+      - ../../apps/web:/app
+      - /app/node_modules
+      - /app/dist
+    command: npm run start -- --host 0.0.0.0 --poll 1000
+    networks:
+      - yourtime-network
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
+  redis_data:
+  minio_data:
+  caddy_data:
+  caddy_config:
+
+networks:
+  yourtime-network:
+    driver: bridge

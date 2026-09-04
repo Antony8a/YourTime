@@ -1,0 +1,34 @@
+{
+  "name": "@yourtime/shared-types",
+  "version": "0.0.0",
+  "private": true,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./api": {
+      "types": "./dist/api/index.d.ts",
+      "default": "./dist/api/index.js"
+    },
+    "./models": {
+      "types": "./dist/models/index.d.ts",
+      "default": "./dist/models/index.js"
+    },
+    "./enums": {
+      "types": "./dist/enums/index.d.ts",
+      "default": "./dist/enums/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "dev": "tsc -b --watch",
+    "clean": "rm -rf dist .tsbuildinfo",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0"
+  }
+}

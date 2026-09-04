@@ -1,0 +1,3 @@
+-- 02-schema.sql
+-- This will be created by Goose migrations
+-- The actual schema is in apps/backend/internal/infrastructure/persistence/postgres/migrations/001_initial_schema.up.sql

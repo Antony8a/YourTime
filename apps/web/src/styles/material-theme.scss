@@ -1,0 +1,79 @@
+@use '@angular/material' as mat;
+
+// Custom theme
+$yourtime-primary: mat.define-palette(mat.$blue-palette, 500, 100, 700);
+$yourtime-accent: mat.define-palette(mat.$purple-palette, 500, 100, 700);
+$yourtime-warn: mat.define-palette(mat.$red-palette, 500, 100, 700);
+
+$yourtime-theme: mat.define-light-theme((
+  color: (
+    primary: $yourtime-primary,
+    accent: $yourtime-accent,
+    warn: $yourtime-warn,
+  ),
+  typography: mat.define-typography-config(
+    $font-family: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+    $headline-1: mat.define-typography-level(2.25rem, 36px, 400),
+    $headline-2: mat.define-typography-level(1.875rem, 30px, 400),
+    $headline-3: mat.define-typography-level(1.5rem, 24px, 400),
+    $headline-4: mat.define-typography-level(1.25rem, 20px, 400),
+    $headline-5: mat.define-typography-level(1.125rem, 18px, 400),
+    $headline-6: mat.define-typography-level(1rem, 16px, 500),
+    $subtitle-1: mat.define-typography-level(1rem, 16px, 400),
+    $subtitle-2: mat.define-typography-level(0.875rem, 14px, 500),
+    $body-1: mat.define-typography-level(1rem, 16px, 400),
+    $body-2: mat.define-typography-level(0.875rem, 14px, 400),
+    $button: mat.define-typography-level(0.875rem, 14px, 500, letter-spacing: 0.02em),
+    $caption: mat.define-typography-level(0.75rem, 12px, 400),
+    $overline: mat.define-typography-level(0.75rem, 12px, 500, text-transform: uppercase, letter-spacing: 0.1em),
+  ),
+  density: -1,
+));
+
+@include mat.all-component-themes($yourtime-theme);
+
+// Dark theme
+$yourtime-dark-primary: mat.define-palette(mat.$blue-palette, 400, 100, 700);
+$yourtime-dark-accent: mat.define-palette(mat.$purple-palette, 400, 100, 700);
+$yourtime-dark-warn: mat.define-palette(mat.$red-palette, 400, 100, 700);
+
+$yourtime-dark-theme: mat.define-dark-theme((
+  color: (
+    primary: $yourtime-dark-primary,
+    accent: $yourtime-dark-accent,
+    warn: $yourtime-dark-warn,
+  ),
+  typography: mat.get-typography-config($yourtime-theme),
+  density: -1,
+));
+
+@media (prefers-color-scheme: dark) {
+  @include mat.all-component-themes($yourtime-dark-theme);
+}
+
+// Custom component styles
+@mixin mat-button-overrides {
+  .mat-mdc-button {
+    text-transform: none;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+  }
+}
+
+@mixin mat-card-overrides {
+  .mat-mdc-card {
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  }
+}
+
+@mixin mat-form-field-overrides {
+  .mat-mdc-form-field {
+    --mdc-filled-text-field-container-color: transparent;
+    --mdc-filled-text-field-focus-container-color: transparent;
+  }
+}
+
+@include mat-button-overrides;
+@include mat-card-overrides;
+@include mat-form-field-overrides;

@@ -1,0 +1,3 @@
+-- 03-seed.sql
+-- Seed data will be inserted by the Go seed script
+-- See apps/backend/scripts/seed.go

@@ -1,0 +1,46 @@
+{
+    admin off
+    local_certs
+    email {$ACME_EMAIL}
+}
+
+# Backend API
+api.yourtime.local {
+    reverse_proxy backend:8080
+    
+    # WebSocket support
+    @websocket {
+        header Connection *Upgrade*
+        header Upgrade websocket
+    }
+    reverse_proxy @websocket backend:8080 {
+        transport http {
+            # WebSocket support
+        }
+    }
+}
+
+# Frontend Web
+yourtime.local {
+    reverse_proxy web:4200
+    
+    # Spa fallback
+    try_files {path} /index.html
+    
+    # Cache static assets
+    @static {
+        path /assets/*
+        path *.js *.css *.woff2 *.png *.jpg *.svg *.ico
+    }
+    header @static Cache-Control "public, max-age=31536000, immutable"
+}
+
+# MinIO Console
+minio.yourtime.local {
+    reverse_proxy minio:9001
+}
+
+# Mailpit
+mail.yourtime.local {
+    reverse_proxy mailpit:8025
+}

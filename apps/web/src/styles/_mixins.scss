@@ -1,0 +1,185 @@
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+@mixin flex-col {
+  display: flex;
+  flex-direction: column;
+}
+
+@mixin text-truncate($lines: 1) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  @if $lines == 1 {
+    white-space: nowrap;
+  } @else {
+    display: -webkit-box;
+    -webkit-line-clamp: $lines;
+    -webkit-box-orient: vertical;
+  }
+}
+
+@mixin focus-ring {
+  &:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px $color-focus;
+  }
+}
+
+@mixin transition($properties: all, $duration: $transition-base, $easing: ease) {
+  transition: $properties $duration $easing;
+}
+
+@mixin hover-scale($scale: 1.02) {
+  &:hover {
+    transform: scale($scale);
+  }
+}
+
+@mixin card {
+  background: $color-bg-secondary;
+  border: 1px solid $color-border-light;
+  border-radius: $radius-lg;
+  box-shadow: $shadow-sm;
+}
+
+@mixin card-hover {
+  @include card;
+  @include transition(box-shadow, transform);
+  &:hover {
+    box-shadow: $shadow-md;
+    transform: translateY(-2px);
+  }
+}
+
+@mixin form-field {
+  width: 100%;
+  padding: $spacing-sm $spacing-md;
+  font-size: $font-size-base;
+  line-height: $line-height-base;
+  color: $color-text-primary;
+  background: $color-bg-secondary;
+  border: 1px solid $color-border-medium;
+  border-radius: $radius-md;
+  @include transition(border-color, box-shadow);
+
+  &:hover {
+    border-color: $color-border-dark;
+  }
+
+  &:focus {
+    @include focus-ring;
+    border-color: $color-primary;
+  }
+
+  &::placeholder {
+    color: $color-text-disabled;
+  }
+
+  &:disabled {
+    background: $color-bg-tertiary;
+    color: $color-text-disabled;
+    cursor: not-allowed;
+  }
+}
+
+@mixin btn-base {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: $spacing-sm;
+  padding: $spacing-sm $spacing-lg;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  line-height: $line-height-base;
+  border: none;
+  border-radius: $radius-md;
+  cursor: pointer;
+  @include transition(background-color, box-shadow, transform);
+  @include focus-ring;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+@mixin btn-primary {
+  @include btn-base;
+  background: $color-primary;
+  color: $color-primary-contrast;
+
+  &:hover:not(:disabled) {
+    background: $color-primary-dark;
+  }
+
+  &:active:not(:disabled) {
+    background: $color-primary-dark;
+    transform: scale(0.98);
+  }
+}
+
+@mixin btn-secondary {
+  @include btn-base;
+  background: $color-bg-tertiary;
+  color: $color-text-primary;
+  border: 1px solid $color-border-medium;
+
+  &:hover:not(:disabled) {
+    background: $color-bg-hover;
+  }
+}
+
+@mixin btn-outline {
+  @include btn-base;
+  background: transparent;
+  color: $color-primary;
+  border: 1px solid $color-primary;
+
+  &:hover:not(:disabled) {
+    background: rgba($color-primary, 0.08);
+  }
+}
+
+@mixin btn-ghost {
+  @include btn-base;
+  background: transparent;
+  color: $color-text-secondary;
+
+  &:hover:not(:disabled) {
+    background: $color-bg-hover;
+    color: $color-text-primary;
+  }
+}
+
+@mixin btn-danger {
+  @include btn-base;
+  background: $color-error;
+  color: #FFFFFF;
+
+  &:hover:not(:disabled) {
+    background: darken($color-error, 10%);
+  }
+}
+
+@mixin responsive($breakpoint) {
+  @if $breakpoint == sm {
+    @media (min-width: 640px) { @content; }
+  } @else if $breakpoint == md {
+    @media (min-width: 768px) { @content; }
+  } @else if $breakpoint == lg {
+    @media (min-width: 1024px) { @content; }
+  } @else if $breakpoint == xl {
+    @media (min-width: 1280px) { @content; }
+  } @else if $breakpoint == 2xl {
+    @media (min-width: 1536px) { @content; }
+  }
+}
