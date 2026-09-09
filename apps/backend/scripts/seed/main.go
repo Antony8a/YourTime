@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 	"os"
+
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 	"github.com/yourtime/backend/internal/config"
 	"github.com/yourtime/backend/internal/infrastructure/persistence/postgres"
 )
@@ -30,12 +30,12 @@ func main() {
 
 	// Seed categories
 	categories := []struct {
-		ID      uuid.UUID
-		Name    string
-		Slug    string
-		Icon    string
-		Color   string
-		Sort    int
+		ID    uuid.UUID
+		Name  string
+		Slug  string
+		Icon  string
+		Color string
+		Sort  int
 	}{
 		{uuid.New(), "Reparaciones del Hogar", "reparaciones-hogar", "home", "#3B82F6", 1},
 		{uuid.New(), "Limpieza", "limpieza", "sparkles", "#10B981", 2},
@@ -61,9 +61,9 @@ func main() {
 
 	// Seed platform config
 	configs := []struct {
-		Key       string
-		Value     string
-		Desc      string
+		Key   string
+		Value string
+		Desc  string
 	}{
 		{"token_exchange_rate", `{"buy": 100, "sell": 90}`, "Tokens por dólar: compra 100, venta 90"},
 		{"platform_fee_percent", `{"task": 10, "withdrawal": 5}`, "Comisión plataforma: 10% tareas, 5% retiros"},

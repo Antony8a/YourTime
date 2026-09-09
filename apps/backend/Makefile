@@ -4,9 +4,9 @@
 BINARY_NAME=server
 BUILD_DIR=bin
 CMD_DIR=cmd/server
-MIGRATE_CMD=go run scripts/migrate.go
-SEED_CMD=go run scripts/seed.go
-GENERATE_CMD=go run scripts/generate.go
+MIGRATE_CMD=go run ./scripts/migrate
+SEED_CMD=go run ./scripts/seed
+GENERATE_CMD=go run ./scripts/generate
 
 # ===========================================
 # DEVELOPMENT

@@ -1,9 +1,12 @@
 package main
 
 import (
+	"database/sql"
 	"flag"
 	"fmt"
 	"os"
+
+	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/pressly/goose/v3"
 	"github.com/yourtime/backend/internal/config"
 	"github.com/yourtime/backend/internal/infrastructure/persistence/postgres"
@@ -15,16 +18,13 @@ func main() {
 	direction := flag.String("direction", "up", "Migration direction: up, down, status")
 	flag.Parse()
 
-	pool, err := postgres.NewPool(&cfg.Database)
+	// goose needs database/sql, not pgxpool, so open via the pgx stdlib driver.
+	db, err := sql.Open("pgx", postgres.DSN(&cfg.Database))
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to connect to database: %v\n", err)
 		os.Exit(1)
 	}
-	defer pool.Close()
-
-	db := pool
-
-	goose.SetBaseFS(nil)
+	defer db.Close()
 
 	if err := goose.SetDialect("postgres"); err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to set dialect: %v\n", err)

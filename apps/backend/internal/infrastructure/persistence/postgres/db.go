@@ -8,16 +8,20 @@ import (
 	"github.com/yourtime/backend/internal/config"
 )
 
-func NewPool(cfg *config.DatabaseConfig) (*pgxpool.Pool, error) {
-	dsn := cfg.URL
-	if dsn == "" {
-		dsn = fmt.Sprintf(
-			"postgres://%s:%s@%s:%s/%s?sslmode=%s",
-			cfg.User, cfg.Password, cfg.Host, cfg.Port, cfg.Name, cfg.SSLMode,
-		)
+// DSN builds the Postgres connection string from config, preferring an
+// explicit URL when provided (e.g. managed database connection strings).
+func DSN(cfg *config.DatabaseConfig) string {
+	if cfg.URL != "" {
+		return cfg.URL
 	}
+	return fmt.Sprintf(
+		"postgres://%s:%s@%s:%s/%s?sslmode=%s",
+		cfg.User, cfg.Password, cfg.Host, cfg.Port, cfg.Name, cfg.SSLMode,
+	)
+}
 
-	poolConfig, err := pgxpool.ParseConfig(dsn)
+func NewPool(cfg *config.DatabaseConfig) (*pgxpool.Pool, error) {
+	poolConfig, err := pgxpool.ParseConfig(DSN(cfg))
 	if err != nil {
 		return nil, fmt.Errorf("parse database config: %w", err)
 	}

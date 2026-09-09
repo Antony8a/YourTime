@@ -3,6 +3,9 @@ package user
 import (
 	"context"
 	"errors"
+
+	"github.com/google/uuid"
+	"github.com/yourtime/backend/internal/domain/common/valueobjects"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -52,7 +55,7 @@ func (s *Service) Authenticate(ctx context.Context, email valueobjects.Email, pa
 	}
 
 	if !user.CanLogin() {
-		return nil, errors.New("account not active or email not verified")
+		return nil, ErrAccountInactive
 	}
 
 	return user, nil

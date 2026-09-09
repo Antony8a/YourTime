@@ -1,18 +1,12 @@
 package user
 
 import (
-	"errors"
 	"time"
 	"github.com/google/uuid"
 	"github.com/yourtime/backend/internal/domain/common/valueobjects"
 )
 
-var (
-	ErrUserNotFound     = errors.New("user not found")
-	ErrEmailTaken       = errors.New("email already registered")
-	ErrPhoneTaken       = errors.New("phone already registered")
-	ErrInvalidRole      = errors.New("invalid user role")
-)
+// Domain errors live in errors.go
 
 type Role string
 

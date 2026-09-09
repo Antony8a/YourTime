@@ -20,7 +20,7 @@ import (
 type Router struct {
 	router *chi.Mux
 	server *http.Server
-	logger zerolog.Logger
+	logger logger.Logger
 }
 
 func New(cfg *config.Config, logger logger.Logger) *Router {

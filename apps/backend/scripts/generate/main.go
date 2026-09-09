@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"path/filepath"
 )
 
 func main() {
@@ -18,7 +17,6 @@ func main() {
 	for _, cmd := range commands {
 		fmt.Printf("Running: %v\n", cmd)
 		c := exec.Command(cmd[0], cmd[1:]...)
-		c.Dir = filepath.Join(".", "apps", "backend")
 		c.Stdout = os.Stdout
 		c.Stderr = os.Stderr
 		if err := c.Run(); err != nil {

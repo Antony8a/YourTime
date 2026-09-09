@@ -8,6 +8,15 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+// Logger is an alias so callers can depend on this package instead of zerolog directly.
+type Logger = zerolog.Logger
+
+// Info, Warn and Error use the global logger configured by New for call sites
+// that don't hold a Logger instance (e.g. middleware built before DI wiring).
+func Info() *zerolog.Event  { return log.Info() }
+func Warn() *zerolog.Event  { return log.Warn() }
+func Error() *zerolog.Event { return log.Error() }
+
 func New(env string) zerolog.Logger {
 	zerolog.TimeFieldFormat = time.RFC3339Nano
 
