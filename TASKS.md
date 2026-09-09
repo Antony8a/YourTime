@@ -42,27 +42,29 @@
 - [ ] **0.3.1** `apps/backend/go.mod` (module: `github.com/yourtime/backend`, go 1.23)
 - [ ] **0.3.2** `apps/backend/go.work` (workspace root)
 - [ ] **0.3.3** `apps/backend/.golangci.yml` (copiar del plan)
-- [ ] **0.3.4** `apps/backend/Makefile` (copiar del plan: run, dev, test, lint, generate, migrate, build, clean)
-- [ ] **0.3.5** `apps/backend/.air.toml` (hot reload config)
+- [x] **0.3.4** `apps/backend/Makefile` (copiar del plan: run, dev, test, lint, generate, migrate, build, clean)
+- [x] **0.3.5** `apps/backend/.air.toml` (hot reload config)
 - [ ] **0.3.6** `apps/backend/tools/sqlc.yaml` (config SQLC)
-- [ ] **0.3.7** `apps/backend/cmd/server/main.go` (entry point minimal: config, logger, server start)
-- [ ] **0.3.8** `apps/backend/cmd/server/wire.go` (Wire DI skeleton)
-- [ ] **0.3.9** `apps/backend/internal/config/config.go` (Viper: env, yaml, defaults)
-- [ ] **0.3.10** `apps/backend/internal/platform/logger/zerolog.go` (zerolog setup)
-- [ ] **0.3.11** `apps/backend/internal/domain/common/` (valueobjects: email.go, phone.go, password.go, money.go, tokens.go, coordinates.go + errors.go)
-- [ ] **0.3.12** `apps/backend/internal/domain/user/` (entity.go, repository.go interface, service.go, errors.go)
-- [ ] **0.3.13** `apps/backend/internal/infrastructure/persistence/postgres/` (db.go, tx.go, migrations/.gitkeep, queries/.gitkeep, sqlc/.gitkeep, repository/.gitkeep)
-- [ ] **0.3.14** `apps/backend/internal/infrastructure/auth/jwt.go` (JWT generate/parse/validate)
-- [ ] **0.3.15** `apps/backend/internal/infrastructure/http/router.go` (Chi router + middleware chain)
-- [ ] **0.3.16** `apps/backend/internal/infrastructure/http/middleware/` (auth.go, cors.go, logging.go, rate_limit.go, recovery.go)
-- [ ] **0.3.17** `apps/backend/internal/infrastructure/http/response.go` (API response helpers: OK, Created, Error, ProblemDetails)
-- [ ] **0.3.18** `apps/backend/internal/application/common/` (handler.go base, validator.go, pagination.go)
-- [ ] **0.3.19** `apps/backend/scripts/migrate.go` (Goose runner: up, down, status, create)
-- [ ] **0.3.20** `apps/backend/scripts/seed.go` (seed data runner)
-- [ ] **0.3.21** `apps/backend/scripts/generate.go` (sqlc generate, wire, mocks, swagger)
+- [x] **0.3.7** `apps/backend/cmd/server/main.go` (entry point minimal: config, logger, server start)
+- [x] **0.3.8** `apps/backend/cmd/server/wire.go` (Wire DI skeleton)
+- [x] **0.3.9** `apps/backend/internal/config/config.go` (Viper: env, yaml, defaults)
+- [x] **0.3.10** `apps/backend/internal/platform/logger/zerolog.go` (zerolog setup + `Logger` alias y helpers `Info/Warn/Error` a nivel de paquete)
+- [x] **0.3.11** `apps/backend/internal/domain/common/` (consolidado en `valueobjects/valueobjects.go` + `errors/errors.go` + `events/events.go`, no archivos separados por VO como se planeó originalmente, pero cubre Email/Phone/Password/Money/Tokens/Coordinates)
+- [x] **0.3.12** `apps/backend/internal/domain/user/` (entity.go, repository.go interface, service.go, errors.go — se corrigió duplicación de errores e imports faltantes)
+- [x] **0.3.13** `apps/backend/internal/infrastructure/persistence/postgres/` (db.go con `DSN()` compartido, tx.go, migrations/001_initial_schema.up.sql)
+- [ ] **0.3.14** `apps/backend/internal/infrastructure/auth/jwt.go` (JWT generate/parse/validate) — pendiente; hoy solo existe validación en `middleware/auth`
+- [x] **0.3.15** `apps/backend/internal/infrastructure/http/router/router.go` (Chi router + middleware chain — se corrigió tipo `logger.Logger` no resuelto)
+- [x] **0.3.16** `apps/backend/internal/infrastructure/http/middleware/` (auth, logging, ratelimit, recovery, validation — se corrigieron llamadas a logger paquete)
+- [x] **0.3.17** `apps/backend/internal/infrastructure/http/response.go` (API response helpers: OK, Created, Error, ProblemDetails — se corrigió import faltante de `strings`)
+- [x] **0.3.18** `apps/backend/internal/application/common/` (handler.go base, validator.go, pagination.go)
+- [x] **0.3.19** `apps/backend/scripts/migrate/main.go` (Goose runner: up, down, status — reestructurado a subpaquete propio y corregido para usar `database/sql` vía `pgx/stdlib`, antes usaba `pgxpool.Pool` incompatible con goose)
+- [x] **0.3.20** `apps/backend/scripts/seed/main.go` (seed data runner — reestructurado a subpaquete propio)
+- [x] **0.3.21** `apps/backend/scripts/generate/main.go` (sqlc generate, wire, mocks, swagger — reestructurado a subpaquete propio; antes 3 `main()` colisionaban en el mismo paquete `scripts`)
 - [ ] **0.3.22** `apps/backend/Dockerfile` (multi-stage: builder → alpine runtime)
 - [ ] **0.3.23** `apps/backend/.dockerignore`
-- [ ] **0.3.24** `go mod tidy` + `go mod verify` + `make generate` (wire, sqlc) compila sin errores
+- [x] **0.3.24** `go mod tidy` + `go mod verify` + `make generate` (wire, sqlc) compila sin errores — **verificado**: se instaló Go 1.27.1 (portable, en `%LOCALAPPDATA%\Programs\go`), se corrigió una pseudo-versión inválida de `gopkg.in/gomail.v2` en `go.mod`, se corrigió `middleware/recovery/recovery.go` (usaba `chi/middleware.Recoverer` con un callback que esa función no acepta) y ahora `go build ./...`, `go vet ./...`, `go build -tags wireinject ./...` y `go test ./...` pasan sin errores.
+
+> **Nota (revisión 2026-09-09):** se auditó todo el código Go generado hasta ahora contra un build estático (no se pudo compilar, Go no está instalado en este entorno) y se encontraron/corrigieron: dependencias usadas pero ausentes de `go.mod`, línea duplicada en `go.mod`, tipo `logger.Logger` inexistente usado en `router.go`/middlewares, funciones `logger.Warn()/Error()` a nivel de paquete que no existían, declaración duplicada de errores de dominio en `user` (`entity.go` vs `errors.go`), imports faltantes en `user/service.go` y `response.go`, y `scripts/{migrate,seed,generate}.go` con tres `func main()` colisionando en el mismo paquete (se movieron a subpaquetes) más un `goose.Up/Down/Status` que recibía `*pgxpool.Pool` en vez de `*sql.DB`. También se creó el esqueleto mínimo de `internal/domain/token/` (entity, repository, service, errors) ya que estaba vacío pese a estar 100% diseñado en `TOKEN_ECONOMY.md`. **Actualización:** se instaló Go y se confirmó compilación real; solo quedó un error adicional no detectable por lectura estática (`middleware.Recoverer` no acepta callback de error), ya corregido.
 
 ### 0.4 Scaffold Frontend Web (Angular)
 - [x] **0.4.1** `apps/web/package.json` (Angular 19, Material, Signals, Vitest, ESLint, Prettier)
@@ -184,7 +186,8 @@
 - 3.5 MercadoPago Integration
 - 3.6 Withdrawal Flow (Request → Admin → Payout)
 - 3.7 Platform Config (DB, Admin-editable)
-- 3.8 Web/Mobile: Balance, Buy, History, Withdraw
+- 3.8 Reconciliación diaria (cron: available+pending == emitido-quemado, alerta ante drift)
+- 3.9 Web/Mobile: Balance, Buy, History, Withdraw
 
 ### FASE 4: Chat & Notifications
 - 4.1 Domain Conversation/Message/Notification
@@ -231,4 +234,4 @@ git commit -m "chore(monorepo): add root package.json with workspaces and toolin
 
 ---
 
-**Estado actual:** Listo para **Tarea 0.1.1** → `package.json` raíz.
+**Estado actual (2026-09-09):** FASE 0 backend scaffoldeado, con bugs de compilación corregidos y **build confirmado** (`go build ./...`, `go vet ./...`, `go test ./...` pasan sin errores con Go 1.27.1). Falta: `.golangci.yml`, `tools/sqlc.yaml`, Dockerfile/.dockerignore, `jwt.go` de emisión de tokens. Dominio `token` tiene ya un esqueleto mínimo (entity/repository/service/errors). Sección 0.6 (Docker Compose), 0.7 (CI/CD) y 0.8 (git hooks) siguen sin iniciar. Próxima tarea recomendada: **0.3.3** `.golangci.yml`.

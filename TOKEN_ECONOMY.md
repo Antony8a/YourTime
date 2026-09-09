@@ -469,6 +469,16 @@ func (s *TokenService) ProcessWithdrawal(ctx context.Context, withdrawalID UUID,
 
 ## Seguridad y Compliance
 
+### 0. Marco Legal / Regulatorio (bloqueante antes de procesar retiros reales)
+
+Este es el **mayor riesgo de negocio del proyecto**, no solo técnico: convertir tokens internos en transferencias de dinero real hacia terceros (workers) puede calificar como **transmisión de dinero / servicio de pago** según la jurisdicción, incluso operando "solo como intermediario". Antes de habilitar retiros reales en producción:
+
+1. **Revisión legal temprana** (no al final del proyecto): determinar si YourTime necesita licencia de money transmitter / PSP propia, o si puede operar como agente de un procesador ya licenciado (Stripe Connect, MercadoPago Marketplace) para que la responsabilidad regulatoria recaiga en el partner licenciado. Esta decisión condiciona el diseño técnico (p. ej. Stripe Connect maneja KYC y payouts por vos).
+2. **Modelo recomendado para MVP**: usar **Stripe Connect (Express/Custom)** o **MercadoPago Marketplace** para que el proveedor sea quien legalmente mueve el dinero a la cuenta bancaria del worker; YourTime solo orquesta cuándo y cuánto liberar. Reduce drásticamente el riesgo regulatorio vs. mover dinero desde una cuenta propia.
+3. **Términos y Condiciones**: dejar explícito que los tokens no son un instrumento financiero, no generan interés, no son transferibles entre usuarios fuera de la plataforma, y su valor en USD es fijado unilateralmente por YourTime (evita que se interpreten como stablecoin/valor regulado).
+4. **Límites conservadores en el lanzamiento**: cap bajo de retiro mensual por usuario hasta tener el marco legal validado, y KYC obligatorio antes del primer retiro (no solo por encima de un umbral).
+5. **Checklist antes de abrir retiros en prod**: ver sección "Compliance" en `INFRASTRUCTURE_PLAN.md`.
+
 ### 1. Prevención Lavado Dinero (AML/KYC)
 - **Límites**: Min/max retiro, max daily/monthly volume
 - **Verificación**: Retiros > $1000 requieren KYC (documento, selfie, proof of address)

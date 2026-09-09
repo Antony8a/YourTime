@@ -13,6 +13,33 @@
 | Monedas | Enteros en unidad mínima (centavos, tokens) |
 | Errors | RFC 7807 Problem Details |
 | Versioning | URL path (`/v1/`, `/v2/`) |
+| Idempotencia | Header `Idempotency-Key` obligatorio en POSTs que mueven tokens/dinero |
+
+## Idempotencia en Escrituras Críticas
+
+Los webhooks de pago ya deben ser idempotentes (mismo evento del provider no debe acreditar dos veces), pero eso no cubre el caso de **doble tap del cliente** o **reintento automático del HTTP client** en un POST que el usuario dispara directamente. Por eso, los siguientes endpoints **requieren** el header `Idempotency-Key: <uuid-v4 generado por el cliente>`:
+
+- `POST /tokens/purchase`
+- `POST /tokens/withdraw`
+- `POST /tasks` (creación de task)
+- `POST /tasks/:id/applications/:appId/accept`
+
+Comportamiento del servidor:
+1. Se busca `(user_id, idempotency_key)` en una tabla `idempotency_keys` (TTL 24h vía Redis o tabla con `expires_at`).
+2. Si existe y la request tiene el mismo hash de body → se devuelve la **misma respuesta cacheada** (200/201) sin re-ejecutar la operación.
+3. Si existe pero el body difiere → `409 Conflict` (`idempotency-key-reused-with-different-payload`).
+4. Si no existe → se ejecuta la operación y se guarda `(key, response, body_hash)` antes de responder.
+
+```json
+// Error si se reusa la key con distinto body
+{
+  "type": "https://yourtime.com/errors/idempotency-key-conflict",
+  "title": "Idempotency Key Conflict",
+  "status": 409,
+  "detail": "This Idempotency-Key was already used with a different request body",
+  "instance": "/api/v1/tokens/purchase"
+}
+```
 
 ## Códigos de Estado HTTP
 

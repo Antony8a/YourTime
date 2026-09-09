@@ -127,6 +127,36 @@ CREATE INDEX idx_tasks_category ON tasks(category_id);
 CREATE INDEX idx_tasks_created ON tasks(created_at DESC);
 ```
 
+> ⚠️ **`idx_tasks_location` no sirve para búsquedas por radio.** Un índice B-tree sobre `(lat, lng)` solo acelera búsquedas por igualdad/rango en cada columna por separado; el filtro típico de la app ("tareas a 10km de mí") requiere calcular distancia geodésica, lo cual sin índice adecuado termina en un *sequential scan* sobre toda la tabla `tasks`. Ver "Búsqueda Geoespacial" más abajo para la solución (PostGIS + `geography` + índice GiST).
+
+### Búsqueda Geoespacial (PostGIS)
+
+Para que `GET /tasks?lat=..&lng=..&radius_km=..` escale, se agrega una columna generada `geography` respaldada por PostGIS y se indexa con GiST:
+
+```sql
+CREATE EXTENSION IF NOT EXISTS postgis;
+
+ALTER TABLE tasks ADD COLUMN location geography(Point, 4326)
+    GENERATED ALWAYS AS (ST_SetSRID(ST_MakePoint(location_lng, location_lat), 4326)::geography) STORED;
+
+CREATE INDEX idx_tasks_location_geo ON tasks USING GIST (location);
+```
+
+Query de radio (reemplaza el filtro manual de lat/lng en `ListTasks`):
+
+```sql
+SELECT *,
+       ST_Distance(location, ST_SetSRID(ST_MakePoint($1, $2), 4326)::geography) AS distance_m
+FROM tasks
+WHERE status = 'open'
+  AND deleted_at IS NULL
+  AND ST_DWithin(location, ST_SetSRID(ST_MakePoint($1, $2), 4326)::geography, $3 * 1000)
+ORDER BY distance_m ASC
+LIMIT $4;
+```
+
+Mismo patrón aplica a `users.location_lat/location_lng` si se agrega "buscar workers cerca mío". Si PostGIS no está disponible en el proveedor cloud elegido, la alternativa de menor esfuerzo es la extensión `cube` + `earthdistance` (sin soporte de `Point`/SRID, menos precisa pero suficiente para MVP).
+
 ### Task Applications (Postulaciones)
 ```sql
 CREATE TABLE task_applications (

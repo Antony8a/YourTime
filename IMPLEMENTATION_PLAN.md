@@ -136,15 +136,16 @@ YourTime es un marketplace de servicios locales donde usuarios solicitan y ofrec
 | 3.6 | Withdrawal: Request → Admin approval → Payout (bank transfer / PayPal / MP) |
 | 3.7 | Platform config: Exchange rates, fees, packages, limits (en DB, admin-editable) |
 | 3.8 | Webhooks: Idempotency, signature verification, retry logic |
-| 3.9 | Tests: Unit (cálculos, edge cases), Integration (flujos compra/pago/retiro) |
+| 3.9 | Reconciliación: cron diario que valida `sum(available)+sum(pending) == total emitido - total quemado` y alerta ante drift |
+| 3.10 | Tests: Unit (cálculos, edge cases), Integration (flujos compra/pago/retiro) |
 
 #### Frontend Web + Mobile
 | Tarea | Detalle |
 |-------|---------|
-| 3.10 | Token store (balance, transactions, packages) |
-| 3.11 | Pages: Balance, BuyTokens (paquetes + Stripe/MP checkout), TransactionHistory |
-| 3.12 | Withdrawal flow: Form (bank details encrypted), status tracking |
-| 3.13 | Task flow integration: Show hold on accept, payment on complete |
+| 3.11 | Token store (balance, transactions, packages) |
+| 3.12 | Pages: Balance, BuyTokens (paquetes + Stripe/MP checkout), TransactionHistory |
+| 3.13 | Withdrawal flow: Form (bank details encrypted), status tracking |
+| 3.14 | Task flow integration: Show hold on accept, payment on complete |
 
 **Entregable:** Usuario compra tokens → Crea task (hold) → Worker completa → Recibe tokens → Retira a banco.
 
@@ -224,7 +225,7 @@ YourTime es un marketplace de servicios locales donde usuarios solicitan y ofrec
 | Performance geo-search en Postgres | Media | Medio | Índices GiST, paginación cursor, caching Redis |
 | WebSocket scaling (mobile + web) | Media | Medio | Redis pub/sub, sticky sessions o stateless design |
 | App Store / Play Store review | Baja | Alto | Guidelines checklist, TestFlight/Internal testing previo |
-| Regulatorio (tokens ↔ dinero, KYC) | Media | Alto | Legal review temprano, límites conservadores MVP |
+| Regulatorio (tokens ↔ dinero, KYC, ¿licencia money transmitter?) | Media | **Alto** | Ver "Marco Legal / Regulatorio" en `TOKEN_ECONOMY.md`: revisión legal antes de FASE 3, usar Stripe Connect/MercadoPago Marketplace como PSP licenciado en vez de mover dinero propio, KYC obligatorio pre-retiro |
 
 ---
 
