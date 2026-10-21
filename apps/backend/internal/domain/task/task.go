@@ -115,8 +115,10 @@ type Task struct {
 	AssignedApplicantID   *uuid.UUID
 	AssignedAt            *time.Time
 	EnRouteAt             *time.Time
-	StartedAt             *time.Time
-	CompletedAt           *time.Time
+	// RouteETASeconds is the trip time estimated when the worker set out.
+	RouteETASeconds *int
+	StartedAt       *time.Time
+	CompletedAt     *time.Time
 	// WorkerLocation is the worker's last reported position, only while active.
 	WorkerLocation *WorkerLocation
 	CancelledAt    *time.Time

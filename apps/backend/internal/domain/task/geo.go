@@ -20,6 +20,29 @@ func DistanceKm(a, b valueobjects.Coordinates) float64 {
 
 func toRad(deg float64) float64 { return deg * math.Pi / 180 }
 
+// Speeds, as straight-line km per hour, that bound a believable trip estimate.
+// A reported route time outside the range is pulled back into it, so nobody can
+// inflate it to excuse a late arrival or shrink it to look punctual.
+const (
+	fastestKmh = 90.0 // open road
+	slowestKmh = 12.0 // heavy city traffic, door to door
+	typicalKmh = 20.0 // what we assume when the worker's app sent no estimate
+	etaSlackS  = 300  // parking, walking in
+)
+
+// RouteETASeconds is the travel time to store when a worker sets out: the one
+// their app measured on the route, kept within what the distance allows, or a
+// typical urban estimate when none was sent.
+func RouteETASeconds(km float64, reported *int) int {
+	secs := func(kmh float64) int { return int(math.Round(km / kmh * 3600)) }
+	lo, hi := secs(fastestKmh), secs(slowestKmh)+etaSlackS
+	eta := secs(typicalKmh) + etaSlackS
+	if reported != nil {
+		eta = *reported
+	}
+	return min(max(eta, lo), hi)
+}
+
 // WithinRadius answers the "is this reasonably near me?" hint shown next to a
 // task. It returns nil when there is nothing to compare (no preference set, no
 // known distance). Remote tasks are always within reach.

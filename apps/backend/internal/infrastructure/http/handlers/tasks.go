@@ -141,17 +141,24 @@ type positionRequest struct {
 	Longitude *float64 `json:"longitude" validate:"required,gte=-180,lte=180"`
 }
 
-// StartRoute: POST /tasks/{id}/start-route with the worker's current position.
+type startRouteRequest struct {
+	positionRequest
+	// EtaSeconds is the trip time the worker's app measured on the route.
+	EtaSeconds *int `json:"eta_seconds" validate:"omitempty,gte=0,lte=86400"`
+}
+
+// StartRoute: POST /tasks/{id}/start-route with the worker's current position
+// and, optionally, the trip time their app measured.
 func (h *TaskHandler) StartRoute(w http.ResponseWriter, r *http.Request) {
 	id, ok := pathUUID(w, r, "id")
 	if !ok {
 		return
 	}
-	var req positionRequest
+	var req startRouteRequest
 	if !decode(w, r, &req) {
 		return
 	}
-	res, err := h.svc.StartRoute(r.Context(), authmw.UserID(r.Context()), id, *req.Latitude, *req.Longitude)
+	res, err := h.svc.StartRoute(r.Context(), authmw.UserID(r.Context()), id, *req.Latitude, *req.Longitude, req.EtaSeconds)
 	if err != nil {
 		httpx.HandleError(w, r, err)
 		return

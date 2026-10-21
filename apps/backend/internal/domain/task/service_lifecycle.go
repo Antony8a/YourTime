@@ -51,12 +51,19 @@ func (t *Task) clearLive() { t.WorkerLocation = nil }
 
 // StartRoute is the worker leaving for the task. It needs their position, which
 // is how the poster starts seeing them on the map. Remote tasks have no route.
-func (t *Task) StartRoute(actor uuid.UUID, at valueobjects.Coordinates, now time.Time) error {
+//
+// etaSeconds is the travel time their app measured on the route, if it did. It
+// is stored (bounded by the distance) to judge punctuality fairly later.
+func (t *Task) StartRoute(actor uuid.UUID, at valueobjects.Coordinates, etaSeconds *int, now time.Time) error {
 	if !t.isWorker(actor) {
 		return ErrNotAssignedWorker
 	}
 	if t.Status != StatusAssigned || t.IsRemote {
 		return ErrInvalidTransition
+	}
+	if t.Place != nil {
+		eta := RouteETASeconds(DistanceKm(at, t.Place.Coordinates), etaSeconds)
+		t.RouteETASeconds = &eta
 	}
 	t.Status = StatusEnRoute
 	t.EnRouteAt = &now
@@ -123,7 +130,7 @@ func (t *Task) Release(actor uuid.UUID, now time.Time) error {
 	}
 	t.Status = StatusOpen
 	t.AssignedApplicationID, t.AssignedApplicantID, t.AssignedAt = nil, nil, nil
-	t.EnRouteAt = nil
+	t.EnRouteAt, t.RouteETASeconds = nil, nil
 	t.clearLive()
 	t.UpdatedAt = now
 	return nil

@@ -72,7 +72,7 @@ func (h *ReviewHandler) Profile(w http.ResponseWriter, r *http.Request) {
 	}
 	httpx.OK(w, ProfileDTO{
 		ID: p.ID, FullName: p.FullName, AvatarURL: p.AvatarURL, Bio: p.Bio,
-		Rating: toRatingDTO(p.Rating), MemberSince: p.MemberSince,
+		Rating: toRatingDTO(p.Rating), MemberSince: p.MemberSince, Reliability: toReliabilityDTO(p.Reliability),
 	})
 }
 

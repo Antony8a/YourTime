@@ -157,12 +157,13 @@ func (s *Service) Complete(ctx context.Context, actor, taskID uuid.UUID) (*TaskR
 
 // StartRoute is the chosen worker leaving. Their position is required: it is how
 // the poster starts following them, and it makes sure location sharing works.
-func (s *Service) StartRoute(ctx context.Context, actor, taskID uuid.UUID, lat, lng float64) (*TaskResult, error) {
+// etaSeconds is the trip time their app measured on the route; it is optional.
+func (s *Service) StartRoute(ctx context.Context, actor, taskID uuid.UUID, lat, lng float64, etaSeconds *int) (*TaskResult, error) {
 	at, err := valueobjects.NewCoordinates(lat, lng)
 	if err != nil {
 		return nil, err
 	}
-	if err := s.tasks.Mutate(ctx, taskID, func(t *task.Task) error { return t.StartRoute(actor, at, s.now()) }); err != nil {
+	if err := s.tasks.Mutate(ctx, taskID, func(t *task.Task) error { return t.StartRoute(actor, at, etaSeconds, s.now()) }); err != nil {
 		return nil, err
 	}
 	return s.Get(ctx, actor, taskID, nil, nil)

@@ -27,6 +27,9 @@ type Party struct {
 	Phone     *string
 	// Rating is shown next to the name so people can weigh an offer or a poster.
 	Rating valueobjects.Rating
+	// Reliability is how the person has behaved as a worker. It is only filled in
+	// for applicants, where the poster is choosing between them.
+	Reliability *valueobjects.Reliability
 }
 
 type ViewerApplication struct {

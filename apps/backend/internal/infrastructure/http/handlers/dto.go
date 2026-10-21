@@ -26,6 +26,29 @@ func toRatingDTO(r valueobjects.Rating) RatingDTO {
 	return RatingDTO{Average: r.Average(), Count: r.Count}
 }
 
+// ReliabilityDTO is how a person has behaved as a worker, from the services
+// they finished, so a poster can weigh it when choosing.
+type ReliabilityDTO struct {
+	// CompletedServices is how many services they have finished as the worker.
+	CompletedServices int `json:"completed_services"`
+	// ResponseSeconds is the median time from being chosen to setting out (or
+	// starting, if remote). Null until they have finished a service.
+	ResponseSeconds *int `json:"response_seconds"`
+	// OnTimeTotal counts the on-site services with a scheduled time that could be
+	// judged fairly, and OnTimeCount those started on time. OnTimePercent is null
+	// when there are none.
+	OnTimeCount   int  `json:"on_time_count"`
+	OnTimeTotal   int  `json:"on_time_total"`
+	OnTimePercent *int `json:"on_time_percent"`
+}
+
+func toReliabilityDTO(r valueobjects.Reliability) ReliabilityDTO {
+	return ReliabilityDTO{
+		CompletedServices: r.Completed, ResponseSeconds: r.ResponseSeconds,
+		OnTimeCount: r.OnTimeCount, OnTimeTotal: r.OnTimeTotal, OnTimePercent: r.OnTimePercent(),
+	}
+}
+
 type LocationDTO struct {
 	Latitude  float64 `json:"latitude"`
 	Longitude float64 `json:"longitude"`
@@ -96,10 +119,17 @@ type PartyDTO struct {
 	Email  string    `json:"email,omitempty"`
 	Phone  *string   `json:"phone,omitempty"`
 	Rating RatingDTO `json:"rating"`
+	// Reliability appears on applicants only.
+	Reliability *ReliabilityDTO `json:"reliability,omitempty"`
 }
 
 func toPartyDTO(p task.Party) PartyDTO {
-	return PartyDTO{ID: p.ID, FullName: p.FullName, AvatarURL: p.AvatarURL, Email: p.Email, Phone: p.Phone, Rating: toRatingDTO(p.Rating)}
+	dto := PartyDTO{ID: p.ID, FullName: p.FullName, AvatarURL: p.AvatarURL, Email: p.Email, Phone: p.Phone, Rating: toRatingDTO(p.Rating)}
+	if p.Reliability != nil {
+		r := toReliabilityDTO(*p.Reliability)
+		dto.Reliability = &r
+	}
+	return dto
 }
 
 type BudgetDTO struct {
@@ -310,4 +340,6 @@ type ProfileDTO struct {
 	Bio         *string   `json:"bio"`
 	Rating      RatingDTO `json:"rating"`
 	MemberSince time.Time `json:"member_since"`
+	// Reliability is how they have behaved as a worker.
+	Reliability ReliabilityDTO `json:"reliability"`
 }

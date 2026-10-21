@@ -26,7 +26,7 @@ const taskColumns = `id, poster_id, category_id, title, description, budget_type
 	budget_max_minor, currency, is_remote, location_lat, location_lng, location_address, location_city,
 	scheduled_at, status, assigned_application_id, assigned_applicant_id, assigned_at, completed_at,
 	cancelled_at, created_at, updated_at, en_route_at, started_at, worker_lat, worker_lng,
-	worker_location_at`
+	worker_location_at, route_eta_seconds`
 
 // rowScanner abstracts pgx.Row and pgx.Rows.
 type rowScanner interface {
@@ -48,7 +48,7 @@ func taskScanTargets(t *task.Task) ([]any, func()) {
 		&t.Budget.MaxMinor, &currency, &t.IsRemote, &lat, &lng, &address, &city,
 		&t.ScheduledAt, &status, &t.AssignedApplicationID, &t.AssignedApplicantID, &t.AssignedAt,
 		&t.CompletedAt, &t.CancelledAt, &t.CreatedAt, &t.UpdatedAt,
-		&t.EnRouteAt, &t.StartedAt, &wlat, &wlng, &wat,
+		&t.EnRouteAt, &t.StartedAt, &wlat, &wlng, &wat, &t.RouteETASeconds,
 	}
 	finish := func() {
 		if wlat != nil && wlng != nil && wat != nil {
@@ -107,12 +107,12 @@ func (r *TaskRepo) Create(ctx context.Context, t *task.Task) error {
 	wlat, wlng, wat := workerArgs(t.WorkerLocation)
 	_, err := r.pool.Exec(ctx, `
 		INSERT INTO tasks (`+taskColumns+`)
-		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28)`,
+		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29)`,
 		t.ID, t.PosterID, t.CategoryID, t.Title, t.Description, string(t.Budget.Type), t.Budget.MinMinor,
 		t.Budget.MaxMinor, t.Budget.Currency.String(), t.IsRemote, lat, lng, address, city,
 		t.ScheduledAt, string(t.Status), t.AssignedApplicationID, t.AssignedApplicantID, t.AssignedAt,
 		t.CompletedAt, t.CancelledAt, t.CreatedAt, t.UpdatedAt,
-		t.EnRouteAt, t.StartedAt, wlat, wlng, wat)
+		t.EnRouteAt, t.StartedAt, wlat, wlng, wat, t.RouteETASeconds)
 	return err
 }
 
@@ -126,13 +126,14 @@ func saveTask(ctx context.Context, tx pgx.Tx, t *task.Task) error {
 			location_address=$12, location_city=$13, scheduled_at=$14, status=$15,
 			assigned_application_id=$16, assigned_applicant_id=$17, assigned_at=$18,
 			completed_at=$19, cancelled_at=$20, updated_at=$21, en_route_at=$22, started_at=$23,
-			worker_lat=$24, worker_lng=$25, worker_location_at=$26
+			worker_lat=$24, worker_lng=$25, worker_location_at=$26, route_eta_seconds=$27
 		WHERE id=$1`,
 		t.ID, t.CategoryID, t.Title, t.Description, string(t.Budget.Type), t.Budget.MinMinor,
 		t.Budget.MaxMinor, t.Budget.Currency.String(), t.IsRemote, lat, lng,
 		address, city, t.ScheduledAt, string(t.Status),
 		t.AssignedApplicationID, t.AssignedApplicantID, t.AssignedAt,
-		t.CompletedAt, t.CancelledAt, t.UpdatedAt, t.EnRouteAt, t.StartedAt, wlat, wlng, wat)
+		t.CompletedAt, t.CancelledAt, t.UpdatedAt, t.EnRouteAt, t.StartedAt, wlat, wlng, wat,
+		t.RouteETASeconds)
 	return err
 }
 
@@ -185,7 +186,7 @@ const viewSelect = `
 		t.budget_max_minor, t.currency, t.is_remote, t.location_lat, t.location_lng, t.location_address,
 		t.location_city, t.scheduled_at, t.status, t.assigned_application_id, t.assigned_applicant_id,
 		t.assigned_at, t.completed_at, t.cancelled_at, t.created_at, t.updated_at,
-		t.en_route_at, t.started_at, t.worker_lat, t.worker_lng, t.worker_location_at,
+		t.en_route_at, t.started_at, t.worker_lat, t.worker_lng, t.worker_location_at, t.route_eta_seconds,
 		c.slug, c.name, c.icon, c.color,
 		p.full_name, p.avatar_url, p.email, p.phone, p.rating_sum, p.rating_count,
 		(SELECT count(*) FROM applications x WHERE x.task_id = t.id AND x.status IN ('pending','accepted')),

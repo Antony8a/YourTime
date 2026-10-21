@@ -28,6 +28,8 @@ type Profile struct {
 	Person
 	Bio         *string
 	MemberSince time.Time
+	// Reliability is how the person has behaved as a worker.
+	Reliability valueobjects.Reliability
 }
 
 type Repository interface {

@@ -20,28 +20,31 @@ func NewApplicationRepo(pool *pgxpool.Pool) *ApplicationRepo { return &Applicati
 
 var _ task.ApplicationRepository = (*ApplicationRepo)(nil)
 
-const applicationSelect = `
+var applicationSelect = `
 	SELECT a.id, a.task_id, a.applicant_id, a.price_minor, a.message, a.status, a.created_at, a.updated_at,
 		u.full_name, u.avatar_url, u.email, u.phone, u.rating_sum, u.rating_count,
 		t.poster_id, t.title, t.status, t.currency, t.location_city, t.is_remote, pu.full_name,
 		EXISTS (SELECT 1 FROM tasks bt WHERE bt.assigned_applicant_id = a.applicant_id
-			AND bt.status IN ('assigned', 'en_route', 'in_progress'))
+			AND bt.status IN ('assigned', 'en_route', 'in_progress')),
+		` + reliabilityColumns + `
 	FROM applications a
 	JOIN users u ON u.id = a.applicant_id
 	JOIN tasks t ON t.id = a.task_id
-	JOIN users pu ON pu.id = t.poster_id`
+	JOIN users pu ON pu.id = t.poster_id` + reliabilityJoin("a.applicant_id")
 
 func scanApplicationView(row rowScanner) (*task.ApplicationView, error) {
 	var (
 		v                        task.ApplicationView
 		status, taskStatus, curr string
 		city                     *string
+		rel                      reliabilityScan
 	)
-	err := row.Scan(&v.ID, &v.TaskID, &v.ApplicantID, &v.PriceMinor, &v.Message, &status, &v.CreatedAt, &v.UpdatedAt,
+	dest := []any{&v.ID, &v.TaskID, &v.ApplicantID, &v.PriceMinor, &v.Message, &status, &v.CreatedAt, &v.UpdatedAt,
 		&v.Applicant.FullName, &v.Applicant.AvatarURL, &v.Applicant.Email, &v.Applicant.Phone,
 		&v.Applicant.Rating.Sum, &v.Applicant.Rating.Count,
 		&v.Task.PosterID, &v.Task.Title, &taskStatus, &curr, &city, &v.Task.IsRemote, &v.Task.PosterName,
-		&v.ApplicantBusy)
+		&v.ApplicantBusy}
+	err := row.Scan(append(dest, rel.dest()...)...)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, task.ErrApplicationNotFound
@@ -50,6 +53,8 @@ func scanApplicationView(row rowScanner) (*task.ApplicationView, error) {
 	}
 	v.Status = task.ApplicationStatus(status)
 	v.Applicant.ID = v.ApplicantID
+	reliability := rel.value()
+	v.Applicant.Reliability = &reliability
 	v.Task.ID = v.TaskID
 	v.Task.Status = task.Status(taskStatus)
 	v.Task.Currency = valueobjects.Currency(curr)

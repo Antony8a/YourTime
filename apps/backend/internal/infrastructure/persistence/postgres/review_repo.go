@@ -130,10 +130,13 @@ func (r *ReviewRepo) Profile(ctx context.Context, userID uuid.UUID) (*review.Pro
 	var (
 		p      review.Profile
 		status string
+		rel    reliabilityScan
 	)
+	dest := []any{&p.ID, &p.FullName, &p.AvatarURL, &p.Bio, &p.Rating.Sum, &p.Rating.Count, &p.MemberSince, &status}
 	err := r.pool.QueryRow(ctx,
-		`SELECT id, full_name, avatar_url, bio, rating_sum, rating_count, created_at, status FROM users WHERE id = $1`, userID,
-	).Scan(&p.ID, &p.FullName, &p.AvatarURL, &p.Bio, &p.Rating.Sum, &p.Rating.Count, &p.MemberSince, &status)
+		`SELECT u.id, u.full_name, u.avatar_url, u.bio, u.rating_sum, u.rating_count, u.created_at, u.status, `+
+			reliabilityColumns+` FROM users u`+reliabilityJoin("u.id")+` WHERE u.id = $1`, userID,
+	).Scan(append(dest, rel.dest()...)...)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, user.ErrNotFound
@@ -144,5 +147,6 @@ func (r *ReviewRepo) Profile(ctx context.Context, userID uuid.UUID) (*review.Pro
 	if user.Status(status) != user.StatusActive {
 		return nil, user.ErrNotFound
 	}
+	p.Reliability = rel.value()
 	return &p, nil
 }

@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -118,27 +119,27 @@ func run() error {
 			posterRates: 5, posterSays: "Excelente trabajo, muy puntual y dejó todo limpio.",
 			workerRates: 5, workerSays: "Muy buen trato y pago a tiempo.",
 			workerReply: "¡Gracias, Luis! Fue un gusto ayudarte.",
-			price:       8500, daysAgo: 4},
+			price:       8500, daysAgo: 4, respondMin: 12, onSite: true, travelMin: 18, lateMin: -3},
 		{poster: marta, worker: ana, task: "Pintar sala y comedor", slug: "hogar",
 			posterRates: 4, posterSays: "Buen resultado, aunque terminó un día después de lo acordado.",
 			workerRates: 5, workerSays: "",
-			price: 12000, daysAgo: 19},
+			price: 12000, daysAgo: 19, respondMin: 35, onSite: true, travelMin: 32, lateMin: 15},
 		{poster: carlos, worker: ana, task: "Armar muebles de oficina", slug: "hogar",
 			posterRates: 5, posterSays: "Rápida y cuidadosa. La recomiendo.",
 			workerRates: 5, workerSays: "Todo claro desde el inicio.",
-			price: 4500000, daysAgo: 52},
+			price: 4500000, daysAgo: 52, respondMin: 9},
 		{poster: ana, worker: luis, task: "Pasear al perro durante una semana", slug: "mascotas",
 			posterRates: 4, posterSays: "Cumplió con los horarios.",
 			workerRates: 5, workerSays: "Ana explica muy bien lo que necesita.",
-			price: 3000000, daysAgo: 11},
+			price: 3000000, daysAgo: 11, respondMin: 20},
 		{poster: ana, worker: marta, task: "Traducir un documento al inglés", slug: "clases",
 			posterRates: 5, posterSays: "Traducción impecable y entregada antes de tiempo.",
 			workerRates: 5, workerSays: "",
-			price: 2200000, daysAgo: 33},
+			price: 2200000, daysAgo: 33, respondMin: 6},
 		{poster: ana, worker: carlos, task: "Reparar computador portátil", slug: "tecnologia",
 			posterRates: 5, posterSays: "Lo dejó como nuevo.",
 			workerRates: 5, workerSays: "",
-			price: 6000000, daysAgo: 71},
+			price: 6000000, daysAgo: 71, respondMin: 50, onSite: true, travelMin: 25, lateMin: 25},
 	}
 	for _, j := range history {
 		if err := j.run(ctx, pool, svc, rsvc, ids, bySlug); err != nil {
@@ -162,6 +163,13 @@ type pastJob struct {
 	// daysAgo moves the completion into the past so balances span real periods.
 	price   int64
 	daysAgo int
+	// The story the reliability figures tell. respondMin is how long the worker
+	// took to set out (or start, if remote) after being chosen. An onSite job
+	// has a scheduled time and a 20 min trip estimate: travelMin is how long the
+	// trip really took and lateMin how many minutes after the scheduled time the
+	// service started (negative means early).
+	respondMin, travelMin, lateMin int
+	onSite                         bool
 }
 
 func (j pastJob) run(ctx context.Context, pool *pgxpool.Pool, svc *tasks.Service, rsvc *reviews.Service, ids []uuid.UUID, bySlug map[string]uuid.UUID) error {
@@ -187,8 +195,7 @@ func (j pastJob) run(ctx context.Context, pool *pgxpool.Pool, svc *tasks.Service
 	if _, err := svc.Complete(ctx, ids[j.worker], t.ID); err != nil {
 		return err
 	}
-	if _, err := pool.Exec(ctx,
-		`UPDATE tasks SET completed_at = NOW() - make_interval(days => $2) WHERE id = $1`, t.ID, j.daysAgo); err != nil {
+	if err := j.backdate(ctx, pool, t.ID); err != nil {
 		return err
 	}
 	given, err := rsvc.Create(ctx, ids[j.poster], t.ID, j.posterRates, j.posterSays)
@@ -204,4 +211,25 @@ func (j pastJob) run(ctx context.Context, pool *pgxpool.Pool, svc *tasks.Service
 		}
 	}
 	return nil
+}
+
+// backdate moves a finished job into the past, with the clock readings that give
+// the worker the reliability this story calls for.
+func (j pastJob) backdate(ctx context.Context, pool *pgxpool.Pool, taskID uuid.UUID) error {
+	minutes := func(n int) time.Duration { return time.Duration(n) * time.Minute }
+	completed := time.Now().AddDate(0, 0, -j.daysAgo)
+	started := completed.Add(-minutes(90))
+	if !j.onSite {
+		_, err := pool.Exec(ctx, `UPDATE tasks SET completed_at=$2, started_at=$3, assigned_at=$4 WHERE id=$1`,
+			taskID, completed, started, started.Add(-minutes(j.respondMin)))
+		return err
+	}
+	const tripEstimateSeconds = 1200
+	setOut := started.Add(-minutes(j.travelMin))
+	_, err := pool.Exec(ctx, `
+		UPDATE tasks SET completed_at=$2, started_at=$3, en_route_at=$4, assigned_at=$5, scheduled_at=$6,
+			route_eta_seconds=$7, is_remote=false, location_lat=6.2442, location_lng=-75.5812, location_city='Medellín'
+		WHERE id=$1`,
+		taskID, completed, started, setOut, setOut.Add(-minutes(j.respondMin)), started.Add(-minutes(j.lateMin)), tripEstimateSeconds)
+	return err
 }

@@ -125,17 +125,17 @@ func TestLiveServiceOrder(t *testing.T) {
 	}
 	// Only the chosen worker starts the route.
 	for _, who := range []uuid.UUID{poster, stranger} {
-		if err := tk.StartRoute(who, here(), now); !errors.Is(err, ErrNotAssignedWorker) {
+		if err := tk.StartRoute(who, here(), nil, now); !errors.Is(err, ErrNotAssignedWorker) {
 			t.Fatalf("only the worker starts the route: %v", err)
 		}
 	}
-	if err := tk.StartRoute(worker, here(), now); err != nil {
+	if err := tk.StartRoute(worker, here(), nil, now); err != nil {
 		t.Fatal(err)
 	}
 	if tk.Status != StatusEnRoute || tk.EnRouteAt == nil || tk.WorkerLocation == nil {
 		t.Fatalf("after starting the route: %+v", tk)
 	}
-	if err := tk.StartRoute(worker, here(), now); !errors.Is(err, ErrInvalidTransition) {
+	if err := tk.StartRoute(worker, here(), nil, now); !errors.Is(err, ErrInvalidTransition) {
 		t.Fatalf("route cannot start twice: %v", err)
 	}
 	if err := tk.StartService(poster, now); !errors.Is(err, ErrNotAssignedWorker) {
@@ -167,7 +167,7 @@ func TestLiveServiceOrder(t *testing.T) {
 func TestPosterCanConfirmCompletion(t *testing.T) {
 	poster, worker := uuid.New(), uuid.New()
 	tk := assigned(t, poster, worker)
-	_ = tk.StartRoute(worker, here(), now)
+	_ = tk.StartRoute(worker, here(), nil, now)
 	_ = tk.StartService(worker, now)
 	if err := tk.Complete(poster, now); err != nil {
 		t.Fatalf("the poster may confirm completion so a forgetful worker cannot block them: %v", err)
@@ -181,7 +181,7 @@ func TestRemoteTaskSkipsTheRoute(t *testing.T) {
 	app, _ := NewApplication(tk, worker, 100, "", now)
 	_ = tk.Assign(poster, app, now)
 
-	if err := tk.StartRoute(worker, here(), now); !errors.Is(err, ErrInvalidTransition) {
+	if err := tk.StartRoute(worker, here(), nil, now); !errors.Is(err, ErrInvalidTransition) {
 		t.Fatalf("a remote task has no route: %v", err)
 	}
 	if err := tk.StartService(worker, now); err != nil || tk.Status != StatusInProgress {
@@ -195,7 +195,7 @@ func TestWorkerLocationRules(t *testing.T) {
 	if err := tk.UpdateWorkerLocation(worker, here(), now); !errors.Is(err, ErrInvalidTransition) {
 		t.Fatalf("no tracking before the route starts: %v", err)
 	}
-	_ = tk.StartRoute(worker, here(), now)
+	_ = tk.StartRoute(worker, here(), nil, now)
 	if err := tk.UpdateWorkerLocation(poster, here(), now); !errors.Is(err, ErrNotAssignedWorker) {
 		t.Fatalf("only the worker reports their position: %v", err)
 	}
@@ -211,7 +211,7 @@ func TestWorkerLocationRules(t *testing.T) {
 func TestRelease(t *testing.T) {
 	poster, worker := uuid.New(), uuid.New()
 	tk := assigned(t, poster, worker)
-	_ = tk.StartRoute(worker, here(), now)
+	_ = tk.StartRoute(worker, here(), nil, now)
 
 	if err := tk.Release(poster, now); !errors.Is(err, ErrNotAssignedWorker) {
 		t.Fatalf("the poster cannot release on the worker's behalf: %v", err)
@@ -225,7 +225,7 @@ func TestRelease(t *testing.T) {
 
 	// Once the work started it cannot be abandoned.
 	started := assigned(t, poster, worker)
-	_ = started.StartRoute(worker, here(), now)
+	_ = started.StartRoute(worker, here(), nil, now)
 	_ = started.StartService(worker, now)
 	if err := started.Release(worker, now); !errors.Is(err, ErrInvalidTransition) {
 		t.Fatalf("release after starting the service: %v", err)
@@ -237,14 +237,14 @@ func TestCancelStopsOnceWorkStarts(t *testing.T) {
 	for _, step := range []string{"assigned", "en_route"} {
 		tk := assigned(t, poster, worker)
 		if step == "en_route" {
-			_ = tk.StartRoute(worker, here(), now)
+			_ = tk.StartRoute(worker, here(), nil, now)
 		}
 		if err := tk.Cancel(poster, now); err != nil || tk.Status != StatusCancelled || tk.WorkerLocation != nil {
 			t.Fatalf("poster may cancel while %s: %v", step, err)
 		}
 	}
 	tk := assigned(t, poster, worker)
-	_ = tk.StartRoute(worker, here(), now)
+	_ = tk.StartRoute(worker, here(), nil, now)
 	_ = tk.StartService(worker, now)
 	if err := tk.Cancel(poster, now); !errors.Is(err, ErrInvalidTransition) {
 		t.Fatalf("cancel once work is under way: %v", err)
@@ -280,7 +280,7 @@ func TestAvailableActions(t *testing.T) {
 	if got := tk.AvailableActions(poster); !has(got, ActionCancel) {
 		t.Fatalf("poster on assigned: %v", got)
 	}
-	_ = tk.StartRoute(worker, here(), now)
+	_ = tk.StartRoute(worker, here(), nil, now)
 	if got := tk.AvailableActions(worker); !has(got, ActionStartService, ActionRelease) {
 		t.Fatalf("worker en route: %v", got)
 	}
@@ -409,4 +409,49 @@ func deref(b *bool) any {
 		return nil
 	}
 	return *b
+}
+
+func TestRouteETASeconds(t *testing.T) {
+	const km = 10.0 // straight line
+	// Between 90 km/h (400 s) and 12 km/h (3000 s) plus 300 s of slack.
+	lo, hi := 400, 3300
+	typical := 1800 + 300 // 20 km/h plus slack
+	sec := func(v int) *int { return &v }
+
+	cases := []struct {
+		name     string
+		reported *int
+		want     int
+	}{
+		{"no estimate falls back to a typical urban one", nil, typical},
+		{"a believable estimate is kept", sec(1500), 1500},
+		{"an inflated estimate cannot excuse a late arrival", sec(20000), hi},
+		{"an impossibly short one cannot look punctual", sec(30), lo},
+	}
+	for _, c := range cases {
+		if got := RouteETASeconds(km, c.reported); got != c.want {
+			t.Errorf("%s: got %d, want %d", c.name, got, c.want)
+		}
+	}
+	if got := RouteETASeconds(0, sec(600)); got != 300 {
+		t.Errorf("at the destination only the slack remains, got %d", got)
+	}
+}
+
+func TestStartRouteStoresTheTripEstimateAndReleaseClearsIt(t *testing.T) {
+	poster, worker := uuid.New(), uuid.New()
+	tk := assigned(t, poster, worker)
+	eta := 900
+	if err := tk.StartRoute(worker, here(), &eta, now); err != nil {
+		t.Fatal(err)
+	}
+	if tk.RouteETASeconds == nil {
+		t.Fatal("the trip estimate should be kept")
+	}
+	if err := tk.Release(worker, now); err != nil {
+		t.Fatal(err)
+	}
+	if tk.RouteETASeconds != nil || tk.EnRouteAt != nil {
+		t.Fatal("giving the task back clears the trip")
+	}
 }
