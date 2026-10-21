@@ -4,31 +4,7 @@
   "tabWidth": 2,
   "trailingComma": "es5",
   "printWidth": 100,
-  "bracketSpacing": true,
   "arrowParens": "always",
   "endOfLine": "lf",
-  "plugins": ["prettier-plugin-organize-imports", "prettier-plugin-packagejson"],
-  "organizeImportsSkipDestructiveCodeActions": true,
-  "overrides": [
-    {
-      "files": ["*.html", "*.scss", "*.css"],
-      "options": {
-        "parser": "angular",
-        "printWidth": 120
-      }
-    },
-    {
-      "files": ["*.md", "*.mdx"],
-      "options": {
-        "printWidth": 100,
-        "proseWrap": "always"
-      }
-    },
-    {
-      "files": ["*.json", "*.yaml", "*.yml"],
-      "options": {
-        "tabWidth": 2
-      }
-    }
-  ]
+  "overrides": [{ "files": "*.md", "options": { "proseWrap": "preserve" } }]
 }
