@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -114,6 +114,15 @@ function TaskDetail({
   const isOwner = task.is_owner;
   const mine = task.my_application;
   const offers = useTaskApplications(task.id, isOwner);
+  const refetchOffers = offers.refetch;
+  // The count comes with the task; the list is a separate query, so re-fetch it when they disagree.
+  useEffect(() => {
+    if (isOwner) void refetchOffers();
+  }, [isOwner, task.applications_count, refetchOffers]);
+  const refreshAll = () => {
+    onRefresh();
+    if (isOwner) void refetchOffers();
+  };
   const accept = useApplicationAction(task.id, 'accept');
   const reject = useApplicationAction(task.id, 'reject');
   const withdraw = useApplicationAction(task.id, 'withdraw');
@@ -197,7 +206,7 @@ function TaskDetail({
     <View style={styles.flex}>
       <Screen
         noTopInset
-        onRefresh={onRefresh}
+        onRefresh={refreshAll}
         refreshing={refreshing}
         bottomInset={showApplyBar ? 96 : 0}
       >

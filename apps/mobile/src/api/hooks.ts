@@ -31,6 +31,8 @@ import { useAuth } from '@/store/auth';
 import { api } from './client';
 
 const PAGE_SIZE = 15;
+/** How often an open task someone is waiting on re-checks the server. */
+const OPEN_TASK_POLL_MS = 10_000;
 
 // ---- keys ------------------------------------------------------------------
 
@@ -122,7 +124,15 @@ export function useTask(id: string, pollMs?: number) {
   return useQuery({
     queryKey: keys.task(id),
     queryFn: () => api.get<Task>(`/tasks/${id}`),
-    refetchInterval: pollMs ?? false,
+    refetchInterval: (q) => {
+      if (pollMs) return pollMs;
+      // An open task someone is waiting on: the poster for offers, an applicant to
+      // hear back. Without push notifications this is how they find out.
+      const t = q.state.data;
+      const waiting =
+        !!t && t.status === 'open' && (t.is_owner || t.my_application?.status === 'pending');
+      return waiting ? OPEN_TASK_POLL_MS : false;
+    },
   });
 }
 
