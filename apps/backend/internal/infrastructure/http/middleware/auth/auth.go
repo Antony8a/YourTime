@@ -1,3 +1,4 @@
+// Package auth is the bearer-token authentication middleware.
 package auth
 
 import (
@@ -5,58 +6,37 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/golang-jwt/jwt/v5"
-	"github.com/yourtime/backend/internal/platform/logger"
+	"github.com/google/uuid"
+	httpx "github.com/yourtime/backend/internal/infrastructure/http"
 )
 
-type contextKey string
+type contextKey struct{}
 
-const UserIDKey contextKey = "user_id"
+// AccessParser verifies an access token and returns its subject.
+type AccessParser interface {
+	ParseAccess(token string) (uuid.UUID, error)
+}
 
-func New(secret string) func(http.Handler) http.Handler {
+func New(parser AccessParser) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			authHeader := r.Header.Get("Authorization")
-			if authHeader == "" {
-				logger.Warn().Str("path", r.URL.Path).Msg("Missing Authorization header")
-				http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			scheme, token, ok := strings.Cut(r.Header.Get("Authorization"), " ")
+			if !ok || !strings.EqualFold(scheme, "Bearer") || token == "" {
+				httpx.Problem(w, r, http.StatusUnauthorized, "Missing or malformed Authorization header")
 				return
 			}
-
-			parts := strings.SplitN(authHeader, " ", 2)
-			if len(parts) != 2 || strings.ToLower(parts[0]) != "bearer" {
-				logger.Warn().Str("path", r.URL.Path).Msg("Invalid Authorization header format")
-				http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			id, err := parser.ParseAccess(strings.TrimSpace(token))
+			if err != nil {
+				httpx.Problem(w, r, http.StatusUnauthorized, "Invalid or expired token")
 				return
 			}
-
-			tokenString := parts[1]
-			claims := jwt.MapClaims{}
-
-			token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
-				return []byte(secret), nil
-			})
-
-			if err != nil || !token.Valid {
-				logger.Warn().Err(err).Str("path", r.URL.Path).Msg("Invalid token")
-				http.Error(w, "Unauthorized", http.StatusUnauthorized)
-				return
-			}
-
-			userID, ok := claims["sub"].(string)
-			if !ok || userID == "" {
-				logger.Warn().Msg("Token missing user ID")
-				http.Error(w, "Unauthorized", http.StatusUnauthorized)
-				return
-			}
-
-			ctx := context.WithValue(r.Context(), UserIDKey, userID)
-			next.ServeHTTP(w, r.WithContext(ctx))
+			next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), contextKey{}, id)))
 		})
 	}
 }
 
-func GetUserID(ctx context.Context) (string, bool) {
-	userID, ok := ctx.Value(UserIDKey).(string)
-	return userID, ok
+// UserID returns the authenticated user's id. Only valid behind New.
+func UserID(ctx context.Context) uuid.UUID {
+	id, _ := ctx.Value(contextKey{}).(uuid.UUID)
+	return id
 }

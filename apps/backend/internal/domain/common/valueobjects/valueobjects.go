@@ -1,127 +1,69 @@
+// Package valueobjects holds small, self-validating domain types.
 package valueobjects
 
 import (
-	"errors"
-	"fmt"
 	"regexp"
+	"strings"
+
+	derr "github.com/yourtime/backend/internal/domain/common/errors"
 )
 
 var (
-	ErrInvalidEmail = errors.New("invalid email format")
-	ErrInvalidPhone = errors.New("invalid phone format")
+	ErrInvalidEmail       = derr.New(derr.ErrInvalidInput, "invalid_email", "invalid email format")
+	ErrInvalidPhone       = derr.New(derr.ErrInvalidInput, "invalid_phone", "invalid phone, expected E.164 like +573001234567")
+	ErrInvalidPassword    = derr.New(derr.ErrInvalidInput, "invalid_password", "password must be between 8 and 72 characters")
+	ErrInvalidCurrency    = derr.New(derr.ErrInvalidInput, "invalid_currency", "unsupported currency code")
+	ErrInvalidCoordinates = derr.New(derr.ErrInvalidInput, "invalid_coordinates", "invalid coordinates")
 )
 
+var (
+	emailRegex = regexp.MustCompile(`^[^\s@]+@[^\s@]+\.[^\s@]+$`)
+	phoneRegex = regexp.MustCompile(`^\+[1-9]\d{6,14}$`)
+)
+
+// Email is a trimmed, lower-cased email address.
 type Email string
 
 func NewEmail(value string) (Email, error) {
-	email := Email(value)
-	if !email.IsValid() {
+	v := strings.ToLower(strings.TrimSpace(value))
+	if len(v) > 254 || !emailRegex.MatchString(v) {
 		return "", ErrInvalidEmail
 	}
-	return email, nil
+	return Email(v), nil
 }
 
-func (e Email) String() string {
-	return string(e)
-}
+func (e Email) String() string { return string(e) }
 
-func (e Email) IsValid() bool {
-	emailRegex := regexp.MustCompile(`^[^\s@]+@[^\s@]+\.[^\s@]+$`)
-	return emailRegex.MatchString(string(e))
-}
-
-func (e Email) Normalized() Email {
-	return Email(string(e))
-}
-
+// Phone is an E.164 phone number.
 type Phone string
 
 func NewPhone(value string) (Phone, error) {
-	phone := Phone(value)
-	if !phone.IsValid() {
+	v := strings.ReplaceAll(strings.TrimSpace(value), " ", "")
+	if !phoneRegex.MatchString(v) {
 		return "", ErrInvalidPhone
 	}
-	return phone, nil
+	return Phone(v), nil
 }
 
-func (p Phone) String() string {
-	return string(p)
-}
+func (p Phone) String() string { return string(p) }
 
-func (p Phone) IsValid() bool {
-	phoneRegex := regexp.MustCompile(`^\+[1-9]\d{1,14}$`)
-	return phoneRegex.MatchString(string(p))
-}
-
-func (p Phone) Formatted() string {
-	cleaned := p.String()
-	if len(cleaned) < 3 {
-		return cleaned
+// ValidatePassword enforces length rules. 72 is bcrypt's input limit.
+func ValidatePassword(value string) error {
+	if len(value) < 8 || len(value) > 72 {
+		return ErrInvalidPassword
 	}
-	countryCode := cleaned[:3]
-	rest := cleaned[3:]
-	if len(rest) == 10 {
-		return fmt.Sprintf("%s %s %s %s-%s", countryCode, rest[:1], rest[1:3], rest[3:7], rest[7:])
-	}
-	return cleaned
+	return nil
 }
 
-type Password string
-
-func NewPassword(value string) (Password, error) {
-	if len(value) < 8 {
-		return "", errors.New("password must be at least 8 characters")
-	}
-	return Password(value), nil
-}
-
-func (p Password) String() string {
-	return string(p)
-}
-
-type Money int64 // in cents
-
-func NewMoney(cents int64) Money {
-	return Money(cents)
-}
-
-func MoneyFromFloat(amount float64, currency string) Money {
-	return Money(int64(amount * 100))
-}
-
-func (m Money) Float64() float64 {
-	return float64(m) / 100
-}
-
-func (m Money) String() string {
-	return fmt.Sprintf("%.2f", m.Float64())
-}
-
-type Tokens int64
-
-func NewTokens(amount int64) Tokens {
-	return Tokens(amount)
-}
-
-func (t Tokens) Int64() int64 {
-	return int64(t)
-}
-
-func (t Tokens) String() string {
-	return fmt.Sprintf("%d", t.Int64())
-}
-
+// Coordinates is a WGS84 latitude/longitude pair.
 type Coordinates struct {
 	Lat float64
 	Lng float64
 }
 
 func NewCoordinates(lat, lng float64) (Coordinates, error) {
-	if lat < -90 || lat > 90 {
-		return Coordinates{}, errors.New("latitude must be between -90 and 90")
-	}
-	if lng < -180 || lng > 180 {
-		return Coordinates{}, errors.New("longitude must be between -180 and 180")
+	if lat < -90 || lat > 90 || lng < -180 || lng > 180 {
+		return Coordinates{}, ErrInvalidCoordinates
 	}
 	return Coordinates{Lat: lat, Lng: lng}, nil
 }

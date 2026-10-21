@@ -1,94 +1,89 @@
+// Package ratelimit is a small in-memory fixed-window limiter keyed by client
+// IP. It protects a single instance; swap it for a shared store (Redis) when
+// the API runs on several instances.
 package ratelimit
 
 import (
+	"context"
+	"net"
 	"net/http"
+	"strconv"
 	"sync"
 	"time"
 
-	"github.com/yourtime/backend/internal/config"
-	"github.com/yourtime/backend/internal/platform/logger"
+	httpx "github.com/yourtime/backend/internal/infrastructure/http"
 )
 
-type clientLimiter struct {
-	mu       sync.Mutex
-	requests map[string][]time.Time
+type window struct {
+	start time.Time
+	count int
 }
 
-func New(cfg *config.Config) func(http.Handler) http.Handler {
-	limiter := &clientLimiter{
-		requests: make(map[string][]time.Time),
-	}
+type limiter struct {
+	mu      sync.Mutex
+	clients map[string]*window
+	max     int
+	period  time.Duration
+}
 
-	// Cleanup old entries every minute
-	go func() {
-		ticker := time.NewTicker(time.Minute)
-		defer ticker.Stop()
-		for range ticker.C {
-			limiter.cleanup()
-		}
-	}()
+// New allows at most max requests per period per client IP. The cleanup
+// goroutine stops when ctx is cancelled.
+func New(ctx context.Context, max int, period time.Duration) func(http.Handler) http.Handler {
+	l := &limiter{clients: make(map[string]*window), max: max, period: period}
+	go l.cleanupLoop(ctx)
 
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			if !limiter.allow(r.RemoteAddr) {
-				logger.Warn().
-					Str("ip", r.RemoteAddr).
-					Str("path", r.URL.Path).
-					Msg("Rate limit exceeded")
-				w.Header().Set("X-RateLimit-Limit", "1000")
-				w.Header().Set("X-RateLimit-Remaining", "0")
-				w.Header().Set("X-RateLimit-Reset", time.Now().Add(time.Hour).Format(time.RFC1123))
-				http.Error(w, "Rate limit exceeded", http.StatusTooManyRequests)
+			allowed, retryAfter := l.allow(clientIP(r), time.Now())
+			if !allowed {
+				w.Header().Set("Retry-After", strconv.Itoa(int(retryAfter.Seconds())+1))
+				httpx.Problem(w, r, http.StatusTooManyRequests, "Too many requests, please slow down")
 				return
 			}
-
 			next.ServeHTTP(w, r)
 		})
 	}
 }
 
-func (l *clientLimiter) allow(ip string) bool {
-	l.mu.Lock()
-	defer l.mu.Unlock()
-
-	now := time.Now()
-	window := now.Add(-time.Hour)
-
-	requests := l.requests[ip]
-	valid := make([]time.Time, 0, len(requests))
-	for _, t := range requests {
-		if t.After(window) {
-			valid = append(valid, t)
-		}
+func clientIP(r *http.Request) string {
+	host, _, err := net.SplitHostPort(r.RemoteAddr)
+	if err != nil {
+		return r.RemoteAddr
 	}
-
-	if len(valid) >= 1000 { // 1000 requests per hour
-		return false
-	}
-
-	valid = append(valid, now)
-	l.requests[ip] = valid
-	return true
+	return host
 }
 
-func (l *clientLimiter) cleanup() {
+func (l *limiter) allow(key string, now time.Time) (bool, time.Duration) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 
-	now := time.Now()
-	window := now.Add(-time.Hour)
+	w, ok := l.clients[key]
+	if !ok || now.Sub(w.start) >= l.period {
+		l.clients[key] = &window{start: now, count: 1}
+		return true, 0
+	}
+	if w.count >= l.max {
+		return false, l.period - now.Sub(w.start)
+	}
+	w.count++
+	return true, 0
+}
 
-	for ip, requests := range l.requests {
-		valid := make([]time.Time, 0)
-		for _, t := range requests {
-			if t.After(window) {
-				valid = append(valid, t)
+func (l *limiter) cleanupLoop(ctx context.Context) {
+	t := time.NewTicker(l.period)
+	defer t.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case now := <-t.C:
+			l.mu.Lock()
+			for k, w := range l.clients {
+				if now.Sub(w.start) >= l.period {
+					delete(l.clients, k)
+				}
 			}
-		}
-		if len(valid) == 0 {
-			delete(l.requests, ip)
-		} else {
-			l.requests[ip] = valid
+			l.mu.Unlock()
 		}
 	}
 }

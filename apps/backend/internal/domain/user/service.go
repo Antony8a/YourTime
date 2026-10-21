@@ -9,69 +9,77 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+// dummyHash lets Authenticate spend the same time on unknown emails as on
+// wrong passwords, so response timing does not reveal which emails exist.
+var dummyHash, _ = bcrypt.GenerateFromPassword([]byte("timing-equalizer"), bcrypt.DefaultCost)
+
 type Service struct {
 	repo Repository
 }
 
-func NewService(repo Repository) *Service {
-	return &Service{repo: repo}
+func NewService(repo Repository) *Service { return &Service{repo: repo} }
+
+type RegisterInput struct {
+	Email    valueobjects.Email
+	Password string
+	FullName string
+	Currency valueobjects.Currency
 }
 
-func (s *Service) Register(ctx context.Context, email valueobjects.Email, password, fullName string) (*User, error) {
-	// Check if email exists
-	exists, err := s.repo.EmailExists(ctx, email)
+func (s *Service) Register(ctx context.Context, in RegisterInput) (*User, error) {
+	if err := valueobjects.ValidatePassword(in.Password); err != nil {
+		return nil, err
+	}
+	hash, err := bcrypt.GenerateFromPassword([]byte(in.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return nil, err
 	}
-	if exists {
-		return nil, ErrEmailTaken
-	}
-
-	// Hash password
-	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	u, err := NewUser(in.Email, string(hash), in.FullName, in.Currency)
 	if err != nil {
 		return nil, err
 	}
-
-	user := NewUser(email, string(hash), fullName)
-	if err := s.repo.Create(ctx, user); err != nil {
+	if err := s.repo.Create(ctx, u); err != nil {
 		return nil, err
 	}
-
-	return user, nil
+	return u, nil
 }
 
 func (s *Service) Authenticate(ctx context.Context, email valueobjects.Email, password string) (*User, error) {
-	user, err := s.repo.GetByEmail(ctx, email)
+	u, err := s.repo.GetByEmail(ctx, email)
 	if err != nil {
-		if errors.Is(err, ErrUserNotFound) {
+		if errors.Is(err, ErrNotFound) {
+			_ = bcrypt.CompareHashAndPassword(dummyHash, []byte(password))
 			return nil, ErrInvalidCredentials
 		}
 		return nil, err
 	}
-
-	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password)); err != nil {
+	if err := bcrypt.CompareHashAndPassword([]byte(u.PasswordHash), []byte(password)); err != nil {
 		return nil, ErrInvalidCredentials
 	}
-
-	if !user.CanLogin() {
+	if !u.CanLogin() {
 		return nil, ErrAccountInactive
 	}
-
-	return user, nil
+	u.RecordLogin()
+	if err := s.repo.Update(ctx, u); err != nil {
+		return nil, err
+	}
+	return u, nil
 }
 
-func (s *Service) ChangePassword(ctx context.Context, userID uuid.UUID, newPassword string) error {
-	user, err := s.repo.GetByID(ctx, userID)
-	if err != nil {
-		return err
-	}
+func (s *Service) Get(ctx context.Context, id uuid.UUID) (*User, error) {
+	return s.repo.GetByID(ctx, id)
+}
 
-	hash, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
+func (s *Service) UpdateProfile(ctx context.Context, id uuid.UUID, p ProfileUpdate) (*User, error) {
+	u, err := s.repo.GetByID(ctx, id)
 	if err != nil {
-		return err
+		return nil, err
 	}
-
-	user.ChangePassword(string(hash))
-	return s.repo.Update(ctx, user)
+	if err := u.ApplyProfileUpdate(p); err != nil {
+		return nil, err
+	}
+	if err := s.repo.Update(ctx, u); err != nil {
+		return nil, err
+	}
+	return u, nil
 }

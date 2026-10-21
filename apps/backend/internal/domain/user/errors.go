@@ -1,12 +1,15 @@
 package user
 
-import "errors"
+import (
+	derr "github.com/yourtime/backend/internal/domain/common/errors"
+)
 
 var (
-	ErrUserNotFound     = errors.New("user not found")
-	ErrEmailTaken       = errors.New("email already registered")
-	ErrPhoneTaken       = errors.New("phone already registered")
-	ErrInvalidRole      = errors.New("invalid user role")
-	ErrInvalidCredentials = errors.New("invalid credentials")
-	ErrAccountInactive  = errors.New("account not active or email not verified")
+	ErrNotFound           = derr.New(derr.ErrNotFound, "user_not_found", "user not found")
+	ErrEmailTaken         = derr.New(derr.ErrConflict, "email_taken", "email already registered")
+	ErrInvalidCredentials = derr.New(derr.ErrUnauthorized, "invalid_credentials", "invalid email or password")
+	ErrAccountInactive    = derr.New(derr.ErrForbidden, "account_inactive", "account is not active")
+	ErrInvalidRadius      = derr.New(derr.ErrInvalidInput, "invalid_radius", "search radius must be between 1 and 20000 km")
+	ErrInvalidName        = derr.New(derr.ErrInvalidInput, "invalid_name", "full name is required (max 150 characters)")
+	ErrInvalidCity        = derr.New(derr.ErrInvalidInput, "invalid_city", "city is too long (max 100 characters)")
 )

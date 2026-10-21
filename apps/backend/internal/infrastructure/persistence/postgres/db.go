@@ -1,48 +1,74 @@
+// Package postgres implements the domain repositories on PostgreSQL via pgx.
 package postgres
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 	"time"
+
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/yourtime/backend/internal/config"
+	_ "github.com/jackc/pgx/v5/stdlib" // registers the "pgx" database/sql driver for goose
+	"github.com/pressly/goose/v3"
+	"github.com/yourtime/backend/internal/infrastructure/persistence/postgres/migrations"
 )
 
-// DSN builds the Postgres connection string from config, preferring an
-// explicit URL when provided (e.g. managed database connection strings).
-func DSN(cfg *config.DatabaseConfig) string {
-	if cfg.URL != "" {
-		return cfg.URL
-	}
-	return fmt.Sprintf(
-		"postgres://%s:%s@%s:%s/%s?sslmode=%s",
-		cfg.User, cfg.Password, cfg.Host, cfg.Port, cfg.Name, cfg.SSLMode,
-	)
-}
-
-func NewPool(cfg *config.DatabaseConfig) (*pgxpool.Pool, error) {
-	poolConfig, err := pgxpool.ParseConfig(DSN(cfg))
+func NewPool(ctx context.Context, url string) (*pgxpool.Pool, error) {
+	cfg, err := pgxpool.ParseConfig(url)
 	if err != nil {
-		return nil, fmt.Errorf("parse database config: %w", err)
+		return nil, fmt.Errorf("parse database url: %w", err)
 	}
+	cfg.MaxConns = 20
+	cfg.MinConns = 2
+	cfg.MaxConnLifetime = time.Hour
+	cfg.MaxConnIdleTime = 30 * time.Minute
+	cfg.HealthCheckPeriod = time.Minute
 
-	poolConfig.MaxConns = 25
-	poolConfig.MinConns = 5
-	poolConfig.MaxConnLifetime = time.Hour
-	poolConfig.MaxConnIdleTime = 30 * time.Minute
-	poolConfig.HealthCheckPeriod = time.Minute
-
-	pool, err := pgxpool.NewWithConfig(context.Background(), poolConfig)
+	pool, err := pgxpool.NewWithConfig(ctx, cfg)
 	if err != nil {
 		return nil, fmt.Errorf("create connection pool: %w", err)
 	}
-
-	// Test connection
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	pingCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
-	if err := pool.Ping(ctx); err != nil {
+	if err := pool.Ping(pingCtx); err != nil {
+		pool.Close()
 		return nil, fmt.Errorf("ping database: %w", err)
 	}
-
 	return pool, nil
+}
+
+// Migrate applies embedded migrations. direction is "up", "down" or "status".
+func Migrate(url, direction string) error {
+	db, err := sql.Open("pgx", url)
+	if err != nil {
+		return fmt.Errorf("open database: %w", err)
+	}
+	defer db.Close()
+
+	goose.SetBaseFS(migrations.FS)
+	if err := goose.SetDialect("postgres"); err != nil {
+		return err
+	}
+	switch direction {
+	case "up":
+		return goose.Up(db, ".")
+	case "down":
+		return goose.Down(db, ".")
+	case "status":
+		return goose.Status(db, ".")
+	default:
+		return fmt.Errorf("unknown migration direction %q", direction)
+	}
+}
+
+const pgUniqueViolation = "23505"
+
+func isUniqueViolation(err error, constraint string) bool {
+	var pgErr *pgconn.PgError
+	if errors.As(err, &pgErr) && pgErr.Code == pgUniqueViolation {
+		return constraint == "" || pgErr.ConstraintName == constraint
+	}
+	return false
 }

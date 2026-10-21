@@ -1,17 +1,16 @@
+// Package errors defines the sentinel error categories shared by all domains.
+// Domain-specific errors wrap one of these so the HTTP layer can map them to a
+// status code without knowing about every domain.
 package errors
 
 import "errors"
 
 var (
-	ErrNotFound           = errors.New("resource not found")
-	ErrAlreadyExists      = errors.New("resource already exists")
-	ErrInvalidInput       = errors.New("invalid input")
-	ErrUnauthorized       = errors.New("unauthorized")
-	ErrForbidden          = errors.New("forbidden")
-	ErrConflict           = errors.New("conflict")
-	ErrInternal           = errors.New("internal error")
-	ErrRateLimited        = errors.New("rate limited")
-	ErrInvalidCredentials = errors.New("invalid credentials")
-	ErrTokenExpired       = errors.New("token expired")
-	ErrTokenInvalid       = errors.New("token invalid")
+	ErrNotFound     = errors.New("resource not found")
+	ErrInvalidInput = errors.New("invalid input")
+	ErrUnauthorized = errors.New("unauthorized")
+	ErrForbidden    = errors.New("forbidden")
+	ErrConflict     = errors.New("conflict")
+	// ErrUnavailable is for something outside our control (a data source) being down.
+	ErrUnavailable = errors.New("temporarily unavailable")
 )

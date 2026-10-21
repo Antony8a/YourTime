@@ -2,55 +2,69 @@ package main
 
 import (
 	"context"
+	"errors"
+	"fmt"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
+	"github.com/yourtime/backend/internal/app"
 	"github.com/yourtime/backend/internal/config"
-	"github.com/yourtime/backend/internal/infrastructure/http/router"
+	"github.com/yourtime/backend/internal/infrastructure/persistence/postgres"
 	"github.com/yourtime/backend/internal/platform/logger"
 )
 
 func main() {
-	// Load configuration
-	cfg := config.Load()
+	if err := run(); err != nil {
+		fmt.Fprintln(os.Stderr, "fatal:", err)
+		os.Exit(1)
+	}
+}
 
-	// Initialize logger
-	log := logger.New(cfg.App.Env)
+func run() error {
+	cfg, err := config.Load()
+	if err != nil {
+		return err
+	}
+	log := logger.New(cfg.Env)
 
-	log.Info().
-		Str("version", "0.0.1-dev").
-		Str("env", cfg.App.Env).
-		Msg("Starting YourTime API server")
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
 
-	// Initialize router with all routes and middleware
-	r := router.New(cfg, log)
+	if cfg.AutoMigrate {
+		log.Info().Msg("Applying database migrations")
+		if err := postgres.Migrate(cfg.DatabaseURL, "up"); err != nil {
+			return fmt.Errorf("migrate: %w", err)
+		}
+	}
 
-	// Start server
-	addr := ":" + cfg.App.Port
-	log.Info().Str("addr", addr).Msg("HTTP server listening")
+	pool, err := postgres.NewPool(ctx, cfg.DatabaseURL)
+	if err != nil {
+		return err
+	}
+	defer pool.Close()
 
+	r := app.NewRouter(ctx, cfg, log, pool, app.Overrides{})
+
+	addr := ":" + cfg.Port
+	serverErr := make(chan error, 1)
 	go func() {
-		if err := r.Run(addr); err != nil {
-			log.Fatal().Err(err).Msg("Server failed")
+		log.Info().Str("addr", addr).Str("env", cfg.Env).Msg("YourTime API listening")
+		if err := r.Run(addr); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			serverErr <- err
 		}
 	}()
 
-	// Wait for interrupt signal to gracefully shutdown
-	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
-	<-quit
-
-	log.Info().Msg("Shutting down server...")
-
-	// Graceful shutdown with timeout
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	if err := r.Shutdown(ctx); err != nil {
-		log.Error().Err(err).Msg("Server forced to shutdown")
+	select {
+	case err := <-serverErr:
+		return err
+	case <-ctx.Done():
 	}
 
-	log.Info().Msg("Server exited")
+	log.Info().Msg("Shutting down")
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	return r.Shutdown(shutdownCtx)
 }
