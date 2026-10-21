@@ -1,5 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Image, Platform, StyleSheet, View, type LayoutChangeEvent } from 'react-native';
+import {
+  Image,
+  Platform,
+  StyleSheet,
+  View,
+  type ImageStyle,
+  type LayoutChangeEvent,
+  type StyleProp,
+} from 'react-native';
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -83,14 +91,9 @@ export function RouteMap({ height, destination, worker, route }: RouteMapProps) 
       accessibilityLabel="Mapa del servicio"
     >
       {tiles.map((t) => (
-        <Image
+        <Tile
           key={`${t.z}/${t.x}/${t.y}/${t.left}`}
-          source={{
-            uri: tileUrl(TILE_TEMPLATE, t),
-            // Native HTTP clients should identify themselves to tile servers.
-            ...(Platform.OS === 'web' ? {} : { headers: { 'User-Agent': 'YourTime/0.1' } }),
-          }}
-          accessibilityIgnoresInvertColors
+          uri={tileUrl(TILE_TEMPLATE, t)}
           style={[styles.tile, { left: t.left, top: t.top }]}
         />
       ))}
@@ -147,6 +150,57 @@ export function RouteMap({ height, destination, worker, route }: RouteMapProps) 
       </View>
     </View>
   );
+}
+
+/**
+ * Tile servers require an identifying User-Agent. On Android, `Image` drops custom
+ * headers and sends a generic `okhttp/x.y`, which OpenStreetMap answers with an
+ * "Access blocked" tile. `fetch` does honour the header, so native downloads the
+ * tile itself and shows it as a data URI. Web uses the plain URL (the browser
+ * sends its own User-Agent and Referer).
+ */
+const TILE_USER_AGENT = 'YourTime/0.1 (+https://github.com/Antony8a/YourTime)';
+const TILE_CACHE_MAX = 300;
+const tileCache = new Map<string, string>();
+
+function toBase64(bytes: Uint8Array): string {
+  let binary = '';
+  for (let i = 0; i < bytes.length; i += 0x8000) {
+    binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+  }
+  return btoa(binary);
+}
+
+function Tile({ uri, style }: { uri: string; style: StyleProp<ImageStyle> }) {
+  const native = Platform.OS !== 'web';
+  const [src, setSrc] = useState<string | null>(native ? (tileCache.get(uri) ?? null) : uri);
+
+  useEffect(() => {
+    if (!native) return;
+    const cached = tileCache.get(uri);
+    if (cached) {
+      setSrc(cached);
+      return;
+    }
+    let live = true;
+    fetch(uri, { headers: { 'User-Agent': TILE_USER_AGENT } })
+      .then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(new Error(`tile ${r.status}`))))
+      .then((buf) => {
+        const data = `data:image/png;base64,${toBase64(new Uint8Array(buf))}`;
+        if (tileCache.size >= TILE_CACHE_MAX) tileCache.delete(tileCache.keys().next().value!);
+        tileCache.set(uri, data);
+        if (live) setSrc(data);
+      })
+      .catch(() => {
+        // A missing tile leaves a gap; the route and markers still draw.
+      });
+    return () => {
+      live = false;
+    };
+  }, [uri, native]);
+
+  if (!src) return null;
+  return <Image source={{ uri: src }} accessibilityIgnoresInvertColors style={style} />;
 }
 
 /** The person travelling: a solid dot with a soft ring that pulses outward. */
@@ -212,7 +266,9 @@ const styles = StyleSheet.create({
   attribution: {
     position: 'absolute',
     left: 0,
-    bottom: 0,
+    // The service sheet overlaps the map's bottom edge (marginTop -28), so lift the
+    // attribution above it; OpenStreetMap's licence requires it to stay visible.
+    bottom: 34,
     paddingHorizontal: 6,
     paddingVertical: 2,
   },
