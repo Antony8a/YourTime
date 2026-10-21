@@ -76,7 +76,7 @@ Ionicons.
 | `GET /tasks/{id}`                | Detalle visto por quien consulta                                                              |
 | `PUT /tasks/{id}`                | Editar (solo quien publicó, solo `open`)                                                      |
 | `POST /tasks/{id}/cancel`        | Cancelar (quien publicó; hasta `en_route`, no una vez `in_progress`)                          |
-| `POST /tasks/{id}/start-route`   | Iniciar ruta (la persona elegida; presencial; cuerpo `latitude`, `longitude`)                 |
+| `POST /tasks/{id}/start-route`   | Iniciar ruta (la persona elegida; presencial; cuerpo `latitude`, `longitude`, `eta_seconds?`) |
 | `POST /tasks/{id}/start-service` | Iniciar servicio (la persona elegida; tras la ruta, o directo si es remota)                   |
 | `POST /tasks/{id}/complete`      | Finalizar (la persona elegida o quien publicó; solo `in_progress`)                            |
 | `POST /tasks/{id}/release`       | Renunciar (la persona elegida; `assigned` o `en_route`); la tarea vuelve a `open`             |
@@ -120,6 +120,12 @@ base de datos.
 (`edit`, `cancel`, `start_route`, `start_service`, `complete`, `release`). Los clientes se dibujan
 desde esa lista en lugar de repetir las reglas.
 
+**Tiempo de ruta.** Al iniciar la ruta, la app puede enviar `eta_seconds`: lo que tardará el trayecto
+según la ruta que calculó. El servidor lo guarda (`route_eta_seconds`) pero lo acota por la distancia
+en línea recta (entre 90 km/h y 12 km/h, más 5 min de margen) para que nadie pueda inflarlo y excusar
+una llegada tarde, ni encogerlo para parecer puntual. Sin `eta_seconds` se estima con 20 km/h. Se
+usa para juzgar la puntualidad (ver [`PRODUCT.md`](PRODUCT.md#confiabilidad-de-quien-trabaja)).
+
 **Ubicación en vivo.** `worker_location: { latitude, longitude, updated_at }` solo lo reciben quien
 publicó y la persona elegida, y solo mientras el servicio está activo. Se borra al finalizar,
 cancelar o renunciar. Para cualquier otra persona es `null`.
@@ -145,13 +151,27 @@ cancelar o renunciar. Para cualquier otra persona es `null`.
 - **La calificación viaja con cada persona:** todo objeto de persona (`poster`, `applicant`,
   `assigned_applicant`, `reviewer`) y `GET /me` incluyen `rating: { average, count }`. `average` va
   redondeado a un decimal y es `0` cuando `count` es `0`.
+- **Confiabilidad.** El perfil público (`GET /users/{id}`) incluye `reliability`, y cada `applicant`
+  de `GET /tasks/{id}/applications` y `GET /me/applications` también (solo en postulantes):
+  ```json
+  {
+    "completed_services": 3,
+    "response_seconds": 720,
+    "on_time_count": 2,
+    "on_time_total": 2,
+    "on_time_percent": 100
+  }
+  ```
+  `response_seconds` es la **mediana** de lo que tardó en salir (o en empezar, si es remota) tras ser
+  elegida, y es `null` sin servicios. `on_time_percent` es `null` si ningún servicio pudo juzgarse.
+  Se calcula al consultar, no se guarda.
 - **Estado de reseña en la tarea.** `GET /tasks/{id}` de una tarea finalizada incluye, solo para
   sus dos participantes, `can_review` (aún no calificó), `my_review` (la que escribió) y
   `review_for_me` (la que recibió). Para el resto son `false` y `null`.
 - Una reseña tiene `id`, `task_id`, `reviewer_id`, `reviewee_id`, `rating`, `comment`, `reply`,
   `replied_at` y `created_at`. En `GET /users/{id}/reviews` añade `reviewer` (nombre, foto y
   calificación) y `task_title`. El perfil público (`GET /users/{id}`) trae `id`, `full_name`,
-  `avatar_url`, `bio`, `rating` y `member_since`; nunca correo ni teléfono.
+  `avatar_url`, `bio`, `rating`, `reliability` y `member_since`; nunca correo ni teléfono.
 
 ## Balance
 

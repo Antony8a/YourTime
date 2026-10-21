@@ -215,6 +215,33 @@ publica y como quien hace la tarea: es una sola reputación por cuenta.
 - **Privacidad:** el perfil público muestra nombre, foto, presentación, calificación y reseñas. Nunca
   correo ni teléfono. De cada reseña se ven el autor y el título de la tarea.
 
+## Confiabilidad de quien trabaja
+
+Junto a la calificación, quien publica ve **cómo trabaja** cada postulante, en su tarjeta y en su
+perfil público, para decidir a quién elegir. Sale de los servicios que la persona **finalizó como
+trabajadora** y se calcula al consultar:
+
+- **Tiempo de respuesta:** la **mediana** de lo que tardó en salir de ruta (o en iniciar, si es
+  remota) desde que la eligieron. Se muestra como "Sale en ~12 min tras ser elegido".
+- **Puntualidad:** "A tiempo en 4 de 5 servicios". Es **justa**, y por eso:
+  - **Solo cuenta servicios presenciales con hora acordada.** Los remotos no tienen trayecto que
+    llegar tarde, y sin hora acordada no hay nada con qué comparar.
+  - **Se omite el servicio si la eligieron sin tiempo para llegar:** si la ruta estimada es de 20 min y
+    la eligieron 10 min antes, nadie lo habría logrado.
+  - **Iniciar hasta 10 min después de la hora es a tiempo.**
+  - **El tráfico no se penaliza si salió a tiempo.** Si salió con margen suficiente según el tiempo de
+    ruta, llegar tarde se atribuye al camino y se perdona hasta el mayor entre 10 min y la mitad del
+    trayecto. Salir tarde no se perdona.
+- **Con pocos datos no se juzga:** la puntualidad solo se colorea (verde, ámbar, rojo) desde 3
+  servicios juzgados; antes se muestra sin color. Quien aún no ha hecho servicios no muestra nada,
+  en vez de un puntaje inventado.
+
+El tiempo de ruta lo mide la app al iniciar la ruta y el servidor lo acota por la distancia (ver
+[`API.md`](API.md)). **Límite honesto:** el proveedor de rutas de prueba no conoce el tráfico en
+vivo, así que el tiempo estimado es el de una vía despejada y el margen del 50 % es lo que absorbe el
+tráfico. Con un proveedor con tráfico en vivo (ver [`ROADMAP.md`](ROADMAP.md)) la medida sería más
+exacta.
+
 ## Balance
 
 Desde **Perfil → Mi balance** cada persona ve dos cifras de un periodo: lo que **ganó** haciendo

@@ -27,7 +27,8 @@ un Android real.
 2. **Explorar:** lista de tareas con distancia, filtros (categoría, radio, texto) y orden por cercanía.
    Si la tarea está en otra moneda, debajo del precio sale su equivalente pequeño: `≈ 63.075 COP`.
 3. **Postularse** con un precio propio y un mensaje (el equivalente se actualiza mientras se escribe).
-   Quien publica ve cada oferta con la calificación del postulante: `★ 4,5 (2)`.
+   Quien publica ve cada oferta con la calificación del postulante (`★ 4,5 (2)`) y **cómo trabaja**:
+   si es puntual, cuánto tarda en salir tras ser elegido y cuántos servicios lleva (ver `PRODUCT.md`).
 4. **Elegir** a una persona. Las demás se descartan. Quien fue elegida puede estar ocupada en otro
    servicio y entonces no se la puede elegir todavía.
 5. **Servicio en vivo**, estilo transporte. Quien hace el trabajo debe pulsar **iniciar ruta** (se ve su
@@ -148,7 +149,7 @@ Resultados al cierre de la sesión (todo en verde):
   La base de `TEST_DATABASE_URL` **se borra** en cada prueba. Los volúmenes `yt-gomod`/`yt-gobuild`
   guardan la caché de Go: sin ellos la primera corrida descarga todo y es lenta.
 
-- **TypeScript:** `npx pnpm@9.15.4 typecheck` y `npx pnpm@9.15.4 test` (Vitest: 55 pruebas, incluidos
+- **TypeScript:** `npx pnpm@9.15.4 typecheck` y `npx pnpm@9.15.4 test` (Vitest: 59 pruebas, incluidos
   rangos de fechas y conversión espejo del backend).
 - **Interfaz:** se recorrió la app real con Playwright (navegador Edge) contra la API real: servicio en
   vivo con dos personas, reseñas, balance y calendario (50 comprobaciones), conversión (32), cierre de
@@ -174,6 +175,13 @@ Lo que el navegador no mostró y el celular sí:
 - **Reanimated dentro de un `Modal` no siempre aplica el estilo** en la primera apertura. `Sheet` anima
   con `Animated` de React Native.
 - **Las bandas del calendario dejaban líneas entre días** en pantallas de alta densidad; se solapan 1 px.
+- **`Image` de React Native en Android descarta los encabezados personalizados** y manda un
+  `okhttp/x.y` genérico: OpenStreetMap lo bloquea y devuelve teselas "Access blocked". `RouteMap`
+  descarga cada tesela con `fetch` (que sí respeta el `User-Agent`) y la muestra como data URI. La
+  atribución quedaba tapada por la hoja del servicio y se subió sobre ella.
+- **Las pantallas de una tarea abierta no se actualizaban solas**: quien publicó no veía las
+  postulaciones nuevas y quien se postuló no sabía que lo habían elegido. Ahora la tarea se sondea
+  cada 10 s mientras alguien la espera (sin push, es la forma de enterarse).
 - **Android ofrece autocompletar contraseñas** al tocar el campo de correo; al probar por `adb` hay que
   elegir esa cuenta o usar "No, gracias".
 
@@ -189,8 +197,9 @@ acompañada de un cambio visual. Accesibilidad: niveles de encabezado (`Text` co
 ## Pendiente y riesgos
 
 - **Confirmar los cambios** (ver el aviso del principio).
-- **Sin probar en un Android real:** servicio en vivo con GPS y mapa, seguimiento de la posición,
-  reseñas y publicar una tarea. La ubicación en vivo solo funciona con la app abierta.
+- **Ubicación en vivo solo con la app abierta.** Probado en un Android real (2026-10-21): GPS, mapa y
+  ruta, iniciar ruta/servicio/finalizar como trabajador y como cliente, reseñas desde los dos lados y
+  publicar una tarea. Falta el seguimiento en segundo plano (ver `ROADMAP.md`).
 - **Tipos de cambio** de fuentes públicas gratuitas (`open.er-api.com`, con respaldo en un espejo
   comunitario): sin garantía de servicio y con atribución obligatoria (ya aparece en el balance). En
   producción, contratar un proveedor con SLA. Son valores de referencia, no de transacción.

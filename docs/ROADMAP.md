@@ -19,6 +19,8 @@ Estado del producto y lo que sigue. Las reglas de lo que ya existe están en
 - Balance de lo ganado y lo gastado por periodo, por moneda, con atajos, flechas y calendario.
 - Conversión de referencia: equivalentes «≈» en la moneda de la cuenta en tareas, postulaciones y
   servicios, y balance total convertido con el cambio del día de cada servicio.
+- Confiabilidad de quien trabaja: tiempo de respuesta y puntualidad justa (solo presencial, con el
+  tiempo de ruta y margen por tráfico), en cada postulación y en el perfil público.
 - Privacidad de ubicación (aproximada para terceros) y de contacto (solo entre las dos partes).
 - App móvil con sistema de diseño propio, modo claro y oscuro, estados de carga, vacío y error.
 - Pruebas unitarias y de extremo a extremo, y CI.
@@ -36,7 +38,8 @@ Ordenado por lo que más cambia la experiencia.
 5. **Tiempos límite del servicio:** liberar a quien nunca inició la ruta y cerrar servicios
    abandonados, para que nadie quede bloqueado por la regla de un servicio a la vez.
 6. **Proveedor de mapas y rutas** con contrato y servidor propio (hoy son servidores públicos de
-   prueba).
+   prueba). Debe incluir **tráfico en vivo**: hoy el tiempo de ruta es el de una vía despejada y la
+   puntualidad lo compensa con un margen, no lo mide.
 7. **Revocación de sesiones:** lista de tokens de renovación por dispositivo y "cerrar en todos".
 8. **Chat entre las dos partes** para coordinar sin compartir el teléfono.
 9. **Moderación de reseñas:** reportar una reseña abusiva y revisarla. Hoy no se pueden editar ni

@@ -54,6 +54,13 @@ erDiagram
   solo el último punto, sin historial: es lo que muestra el mapa y se pone a `NULL` cuando el servicio
   termina, se cancela o se renuncia. Un `CHECK` exige que latitud y longitud existan juntas.
   `en_route_at` y `started_at` registran cuándo salió y cuándo empezó (de ahí el cronómetro).
+  `route_eta_seconds` guarda el trayecto estimado al salir (migración 00006, con un `CHECK` de 0 a
+  86 400); se borra al renunciar.
+- **Confiabilidad calculada, no guardada.** El tiempo de respuesta y la puntualidad se calculan al
+  leer con una subconsulta lateral sobre las tareas finalizadas de la persona
+  (`tasks_worker_completed_idx`). Sin contadores aparte no hay nada que se desincronice, a costa de
+  una agregación por persona; si pesara, el siguiente paso sería guardar totales como se hizo con la
+  calificación.
 - **Estados como `VARCHAR` con `CHECK`** (no `ENUM` de Postgres), para poder añadir estados con una
   migración simple.
 - **Calificación como totales en `users`.** `rating_sum` y `rating_count` se actualizan en la
