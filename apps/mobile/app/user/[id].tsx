@@ -6,6 +6,7 @@ import type { Review } from '@yourtime/shared-types';
 import { ApiError } from '@/api/client';
 import { flatten, useProfile, useUserReviews } from '@/api/hooks';
 import { ScreenHeader } from '@/components/ScreenHeader';
+import { ReliabilityFacts } from '@/components/reviews/ReliabilityFacts';
 import { ReviewCard } from '@/components/reviews/ReviewCard';
 import { ReplySheet } from '@/components/reviews/ReviewSheets';
 import { StarRow, formatAverage } from '@/components/reviews/Stars';
@@ -109,6 +110,24 @@ export default function UserProfileScreen() {
             </Text>
           ) : null}
         </LinearGradient>
+
+        <View style={styles.section}>
+          <Text variant="heading">Cómo trabaja</Text>
+          <ReliabilityFacts
+            reliability={p.reliability}
+            emptyLabel={
+              isMe
+                ? 'Cuando termines servicios, aquí verás qué tan rápido sales y si llegas a tiempo.'
+                : 'Aún no ha realizado servicios.'
+            }
+          />
+          {p.reliability.on_time_total > 0 ? (
+            <Text variant="caption" tone="subtle">
+              La puntualidad solo cuenta servicios presenciales con hora acordada, y es justa: no se
+              penaliza el tráfico si salió a tiempo ni si lo eligieron sin tiempo para llegar.
+            </Text>
+          ) : null}
+        </View>
 
         <View style={styles.section}>
           <Text variant="heading">Reseñas</Text>

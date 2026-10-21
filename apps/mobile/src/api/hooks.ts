@@ -273,7 +273,7 @@ export function useReplyReview(taskId?: string) {
 export function useStartRoute(taskId: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (position: { latitude: number; longitude: number }) =>
+    mutationFn: (position: { latitude: number; longitude: number; eta_seconds?: number }) =>
       api.post<Task>(`/tasks/${taskId}/start-route`, position),
     onSuccess: () => invalidateTaskData(qc, taskId),
   });

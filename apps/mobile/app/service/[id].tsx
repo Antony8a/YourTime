@@ -39,7 +39,7 @@ import {
   type IconName,
 } from '@/components/ui';
 import { useDeviceLocation } from '@/lib/useDeviceLocation';
-import { useRoute } from '@/lib/routing';
+import { fetchRouteWithin, useRoute } from '@/lib/routing';
 import { useShareLocation } from '@/lib/useShareLocation';
 import { useTheme } from '@/theme/ThemeProvider';
 import { radius, space } from '@/theme/tokens';
@@ -48,6 +48,9 @@ import { radius, space } from '@/theme/tokens';
 const POLL_MS = 5000;
 /** A position older than this is called out as stale. */
 const STALE_MS = 90_000;
+/** How long starting the route waits for the trip estimate before going without it. */
+const ROUTE_ETA_WAIT_MS = 3000;
+
 /** Farther than this from the destination, starting the service asks for confirmation. */
 const ARRIVED_KM = 0.3;
 
@@ -202,8 +205,15 @@ function ServiceView({
   const onStartRoute = async () => {
     const place = await locate();
     if (!place) return;
+    // The trip time on the route lets the server judge punctuality fairly. It is
+    // optional and bounded in time, so it never holds the worker back.
+    const trip = destination ? await fetchRouteWithin(place, destination, ROUTE_ETA_WAIT_MS) : null;
     startRoute.mutate(
-      { latitude: place.latitude, longitude: place.longitude },
+      {
+        latitude: place.latitude,
+        longitude: place.longitude,
+        ...(trip ? { eta_seconds: Math.round(trip.durationMin * 60) } : {}),
+      },
       { onSuccess: () => toast(`Ruta iniciada. ${name} te verá en el mapa.`), onError: fail }
     );
   };

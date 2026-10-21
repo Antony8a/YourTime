@@ -2,6 +2,7 @@ import { StyleSheet, View } from 'react-native';
 import type { Application } from '@yourtime/shared-types';
 import { formatMoney, timeAgo } from '@yourtime/shared-utils';
 import { ConvertedAmount } from '@/components/money/Converted';
+import { ReliabilityFacts } from '@/components/reviews/ReliabilityFacts';
 import { RatingBadge } from '@/components/reviews/Stars';
 import { Avatar, Badge, Button, Card, PressableScale, Text } from '@/components/ui';
 import { applicationStatusLabel, applicationStatusTone } from '@/lib/messages';
@@ -64,6 +65,11 @@ export function ApplicantCard({
           />
         ) : null}
       </View>
+
+      <ReliabilityFacts
+        reliability={application.applicant.reliability}
+        emptyLabel="Aún sin servicios realizados."
+      />
 
       <View style={styles.price}>
         <Text variant="caption" tone="muted">

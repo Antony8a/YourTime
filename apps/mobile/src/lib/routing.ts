@@ -51,6 +51,21 @@ export async function fetchRoute(
   }
 }
 
+/** The route, or null if it is not ready within `ms`. Never rejects. */
+export async function fetchRouteWithin(
+  from: LatLng,
+  to: LatLng,
+  ms: number
+): Promise<RouteResult | null> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ms);
+  try {
+    return await fetchRoute(from, to, controller.signal);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 const round = (n: number, decimals: number) => n.toFixed(decimals);
 
 /**

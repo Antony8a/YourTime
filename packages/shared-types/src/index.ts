@@ -46,12 +46,30 @@ export interface Rating {
   count: number;
 }
 
+/**
+ * How a person has behaved as a worker, from the services they finished, to help a
+ * poster choose. Remote services, ones without a scheduled time and ones where the
+ * worker was chosen too late to make the trip are left out of punctuality.
+ */
+export interface Reliability {
+  completed_services: number;
+  /** Median seconds from being chosen to setting out (or starting, if remote). Null with no history. */
+  response_seconds: number | null;
+  /** On-site scheduled services started on time, out of those that could be judged fairly. */
+  on_time_count: number;
+  on_time_total: number;
+  /** Rounded percentage; null when nothing could be judged. */
+  on_time_percent: number | null;
+}
+
 /** A person as seen by someone else. Email/phone only appear when allowed. */
 export interface Party {
   id: string;
   full_name: string;
   avatar_url: string | null;
   rating: Rating;
+  /** Present on applicants, where the poster is choosing between them. */
+  reliability?: Reliability;
   email?: string;
   phone?: string | null;
 }
@@ -293,6 +311,7 @@ export interface PublicProfile {
   bio: string | null;
   rating: Rating;
   member_since: string;
+  reliability: Reliability;
 }
 
 // ---- balance ---------------------------------------------------------------
