@@ -1,14 +1,17 @@
+// Metro config for a pnpm/npm workspace: the shared packages live outside this
+// app's folder and ship TypeScript source, so Metro must watch and resolve them.
 const { getDefaultConfig } = require('expo/metro-config');
 const path = require('path');
 
-const config = getDefaultConfig(__dirname);
+const projectRoot = __dirname;
+const workspaceRoot = path.resolve(projectRoot, '../..');
 
-config.resolver.alias = {
-  '@yourtime/shared-types': path.resolve(__dirname, '../../packages/shared-types/src'),
-  '@yourtime/shared-utils': path.resolve(__dirname, '../../packages/shared-utils/src'),
-  '@': path.resolve(__dirname, 'src'),
-};
+const config = getDefaultConfig(projectRoot);
 
-config.resolver.sourceExts = [...config.resolver.sourceExts, 'mjs', 'cjs'];
+config.watchFolders = [workspaceRoot];
+config.resolver.nodeModulesPaths = [
+  path.resolve(projectRoot, 'node_modules'),
+  path.resolve(workspaceRoot, 'node_modules'),
+];
 
 module.exports = config;
