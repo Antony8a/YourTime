@@ -5,6 +5,8 @@ services:
   postgres:
     image: postgres:16-alpine
     container_name: yourtime-postgres
+    # Come back on their own after Docker or the computer restarts.
+    restart: unless-stopped
     environment:
       POSTGRES_DB: yourtime
       POSTGRES_USER: yourtime
@@ -12,7 +14,8 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
-      - '5432:5432'
+      # Only this computer can reach the database; the API talks to it inside Docker.
+      - '127.0.0.1:5432:5432'
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U yourtime -d yourtime']
       interval: 5s
@@ -24,12 +27,17 @@ services:
       context: ../../apps/backend
       dockerfile: ../../infra/docker/Dockerfile.backend
     container_name: yourtime-backend
+    restart: unless-stopped
     environment:
-      APP_ENV: development
+      # development unless infra/docker/.env says otherwise (see docs/ACCESO_REMOTO.md).
+      APP_ENV: ${APP_ENV:-development}
       PORT: '8080'
       # Migrations are embedded in the binary and applied on start in development.
       DATABASE_URL: postgres://yourtime:${DB_PASSWORD:-yourtime_dev}@postgres:5432/yourtime?sslmode=disable
       JWT_SECRET: ${JWT_SECRET:-}
+      DB_AUTO_MIGRATE: 'true'
+      TRUST_PROXY: ${TRUST_PROXY:-false}
+      REGISTRATION_OPEN: ${REGISTRATION_OPEN:-true}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:8081,http://localhost:19006}
     depends_on:
       postgres:

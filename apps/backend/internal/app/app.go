@@ -50,6 +50,9 @@ func NewRouter(ctx context.Context, cfg *config.Config, log logger.Logger, pool 
 	jwt := security.NewJWTManager(cfg.JWT.Secret, cfg.JWT.AccessTTL, cfg.JWT.RefreshTTL)
 	userSvc := user.NewService(userRepo)
 	authSvc := auth.NewService(userSvc, jwt)
+	if !cfg.RegistrationOpen {
+		authSvc.CloseRegistration()
+	}
 	taskSvc := tasks.NewService(taskRepo, appRepo, userRepo, reviewRepo)
 	reviewSvc := reviews.NewService(reviewRepo, taskRepo)
 	var provider rates.Provider = httprates.NewHTTPProvider()

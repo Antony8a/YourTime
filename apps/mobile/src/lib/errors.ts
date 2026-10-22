@@ -10,6 +10,7 @@ const BY_CODE: Record<string, string> = {
   account_inactive: 'Tu cuenta no está activa. Contacta a soporte.',
   user_not_found: 'No encontramos esa cuenta.',
   invalid_email: 'Escribe un correo válido.',
+  registration_closed: 'Este servidor no está aceptando cuentas nuevas.',
   invalid_password: 'La contraseña debe tener entre 8 y 72 caracteres.',
   invalid_phone: 'Escribe el teléfono con código de país, por ejemplo +573001234567.',
   invalid_currency: 'Esa moneda no está disponible.',

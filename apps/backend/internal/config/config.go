@@ -24,7 +24,10 @@ type Config struct {
 	// their IP and dodge rate limiting.
 	TrustProxy  bool
 	AutoMigrate bool
-	JWT         JWTConfig
+	// RegistrationOpen lets anyone create an account. Turn it off once the people
+	// who should have one do, so a server on the internet is not open to strangers.
+	RegistrationOpen bool
+	JWT              JWTConfig
 }
 
 type JWTConfig struct {
@@ -37,11 +40,12 @@ func (c *Config) IsDevelopment() bool { return c.Env == "development" }
 
 func Load() (*Config, error) {
 	cfg := &Config{
-		Env:         getenv("APP_ENV", "development"),
-		Port:        getenv("PORT", getenv("APP_PORT", "8080")),
-		DatabaseURL: getenv("DATABASE_URL", "postgres://yourtime:yourtime_dev@localhost:5432/yourtime?sslmode=disable"),
-		CORSOrigins: splitList(getenv("CORS_ORIGINS", "http://localhost:8081,http://localhost:19006")),
-		TrustProxy:  getbool("TRUST_PROXY", false),
+		Env:              getenv("APP_ENV", "development"),
+		Port:             getenv("PORT", getenv("APP_PORT", "8080")),
+		DatabaseURL:      getenv("DATABASE_URL", "postgres://yourtime:yourtime_dev@localhost:5432/yourtime?sslmode=disable"),
+		CORSOrigins:      splitList(getenv("CORS_ORIGINS", "http://localhost:8081,http://localhost:19006")),
+		TrustProxy:       getbool("TRUST_PROXY", false),
+		RegistrationOpen: getbool("REGISTRATION_OPEN", true),
 		JWT: JWTConfig{
 			Secret: os.Getenv("JWT_SECRET"),
 		},

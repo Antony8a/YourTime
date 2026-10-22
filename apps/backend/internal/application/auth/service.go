@@ -26,11 +26,16 @@ type TokenManager interface {
 type Service struct {
 	users  *user.Service
 	tokens TokenManager
+	// registrationClosed refuses new accounts; people who already have one still sign in.
+	registrationClosed bool
 }
 
 func NewService(users *user.Service, tokens TokenManager) *Service {
 	return &Service{users: users, tokens: tokens}
 }
+
+// CloseRegistration makes Register refuse every request.
+func (s *Service) CloseRegistration() { s.registrationClosed = true }
 
 type Session struct {
 	User   *user.User
@@ -46,6 +51,9 @@ type RegisterInput struct {
 }
 
 func (s *Service) Register(ctx context.Context, in RegisterInput) (*Session, error) {
+	if s.registrationClosed {
+		return nil, user.ErrRegistrationClosed
+	}
 	email, err := valueobjects.NewEmail(in.Email)
 	if err != nil {
 		return nil, err

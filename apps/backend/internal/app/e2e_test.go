@@ -95,7 +95,10 @@ func (a *api) setLocation(p person, lat, lng float64, city string, radius any) {
 	}), 200, "set location")
 }
 
-func setup(t *testing.T) (*api, *pgxpool.Pool) {
+func setup(t *testing.T) (*api, *pgxpool.Pool) { return setupWith(t, nil) }
+
+// setupWith is setup with a chance to change the configuration first.
+func setupWith(t *testing.T, tweak func(*config.Config)) (*api, *pgxpool.Pool) {
 	url := os.Getenv("TEST_DATABASE_URL")
 	if url == "" {
 		t.Skip("TEST_DATABASE_URL not set")
@@ -112,9 +115,12 @@ func setup(t *testing.T) (*api, *pgxpool.Pool) {
 	if err := postgres.Migrate(url, "up"); err != nil {
 		t.Fatal(err)
 	}
-	cfg := &config.Config{Env: "test", CORSOrigins: []string{"http://localhost"}, JWT: config.JWTConfig{
+	cfg := &config.Config{Env: "test", RegistrationOpen: true, CORSOrigins: []string{"http://localhost"}, JWT: config.JWTConfig{
 		Secret: "test-secret-test-secret-test-secret-123", AccessTTL: time.Hour, RefreshTTL: 24 * time.Hour,
 	}}
+	if tweak != nil {
+		tweak(cfg)
+	}
 	rctx, cancel := context.WithCancel(ctx)
 	t.Cleanup(cancel)
 	r := app.NewRouter(rctx, cfg, logger.New("test"), pool, app.Overrides{GlobalPerMinute: 1_000_000, AuthPerMinute: 1_000_000, RatesProvider: testRates, NoRatesJob: true})
