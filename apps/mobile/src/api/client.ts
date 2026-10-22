@@ -2,6 +2,7 @@ import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 import type { ApiProblem, Page, Session } from '@yourtime/shared-types';
 import { messageFor, messageForRule } from '@/lib/errors';
+import { storage } from '@/lib/storage';
 import { useAuth } from '@/store/auth';
 
 /**
@@ -20,7 +21,42 @@ function resolveBaseUrl(): string {
   return 'http://localhost:8080';
 }
 
-export const API_URL = resolveBaseUrl();
+const API_URL_KEY = 'yourtime.api_url';
+const defaultApiUrl = resolveBaseUrl();
+let apiUrl = defaultApiUrl;
+
+/** The API the app is talking to right now. */
+export const getApiUrl = () => apiUrl;
+/** What the app uses when the person has not chosen a server. */
+export const getDefaultApiUrl = () => defaultApiUrl;
+
+/** Restores a server the person chose earlier. Must finish before the first request. */
+export async function loadSavedApiUrl(): Promise<void> {
+  const saved = await storage.get(API_URL_KEY);
+  if (saved) apiUrl = saved;
+}
+
+/** Points the app at another server and remembers it; null goes back to the default. */
+export async function setApiUrl(url: string | null): Promise<void> {
+  apiUrl = url ?? defaultApiUrl;
+  if (url) await storage.set(API_URL_KEY, url);
+  else await storage.remove(API_URL_KEY);
+}
+
+/** Whether a server answers like ours, within a few seconds. Never throws. */
+export async function checkApiUrl(url: string, timeoutMs = 6000): Promise<boolean> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(`${url}/health`, { signal: controller.signal });
+    const body: unknown = await response.json().catch(() => null);
+    return response.ok && (body as { status?: string } | null)?.status === 'ok';
+  } catch {
+    return false;
+  } finally {
+    clearTimeout(timer);
+  }
+}
 
 /** Long enough for a sleeping free-tier server to wake up (about a minute). */
 const REQUEST_TIMEOUT_MS = 75_000;
@@ -62,7 +98,7 @@ interface Envelope<T> {
 }
 
 function buildUrl(path: string, query?: RequestOptions['query']): string {
-  const url = new URL(`${API_URL}/api/v1${path}`);
+  const url = new URL(`${apiUrl}/api/v1${path}`);
   for (const [key, value] of Object.entries(query ?? {})) {
     if (value !== undefined && value !== null && value !== '')
       url.searchParams.set(key, String(value));

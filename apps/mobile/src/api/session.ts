@@ -1,12 +1,13 @@
 import type { User } from '@yourtime/shared-types';
 import { useAuth } from '@/store/auth';
-import { api, ApiError } from './client';
+import { api, ApiError, loadSavedApiUrl } from './client';
 
 /**
  * Restores the saved session when the app starts. Lives here, not in the store,
  * because it needs the API client and the client already depends on the store.
  */
 export async function bootstrapSession(): Promise<void> {
+  await loadSavedApiUrl();
   const { restoreTokens, signOut } = useAuth.getState();
   if (!(await restoreTokens())) return;
 

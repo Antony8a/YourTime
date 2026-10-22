@@ -6,6 +6,7 @@ import { ApiError } from '@/api/client';
 import { useRegister } from '@/api/hooks';
 import { BrandMark } from '@/components/BrandMark';
 import { CurrencyPicker } from '@/components/profile/CurrencyPicker';
+import { ServerLink } from '@/components/ServerSheet';
 import { Button, Card, Icon, Input, Screen, Text } from '@/components/ui';
 import { guessCurrency } from '@/lib/messages';
 import { useTheme } from '@/theme/ThemeProvider';
@@ -149,6 +150,8 @@ export default function RegisterScreen() {
           </Pressable>
         </Link>
       </View>
+
+      <ServerLink />
 
       <CurrencyPicker
         visible={pickingCurrency}

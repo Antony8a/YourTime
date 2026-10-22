@@ -4,6 +4,7 @@ import { Link } from 'expo-router';
 import { ApiError } from '@/api/client';
 import { useLogin } from '@/api/hooks';
 import { BrandMark } from '@/components/BrandMark';
+import { ServerLink } from '@/components/ServerSheet';
 import { Button, Input, Screen, Text } from '@/components/ui';
 import { space } from '@/theme/tokens';
 
@@ -96,6 +97,8 @@ export default function LoginScreen() {
           </Pressable>
         </Link>
       </View>
+
+      <ServerLink />
 
       {__DEV__ ? (
         <Text variant="caption" tone="subtle" style={styles.dev}>
