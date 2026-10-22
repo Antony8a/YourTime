@@ -1,0 +1,28 @@
+# Render Blueprint: the API as a free web service, rebuilt on every push to master.
+# The database lives in Neon (free, does not expire); see docs/DESPLIEGUE.md.
+services:
+  - type: web
+    name: yourtime-api
+    runtime: docker
+    plan: free
+    region: ohio
+    dockerfilePath: ./infra/docker/Dockerfile.backend
+    dockerContext: ./apps/backend
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: PORT
+        value: '8080'
+      # Migrations are embedded in the binary; outside development they only run when asked.
+      - key: DB_AUTO_MIGRATE
+        value: 'true'
+      # Render puts a proxy in front, so the client's address arrives in X-Forwarded-For.
+      - key: TRUST_PROXY
+        value: 'true'
+      - key: JWT_SECRET
+        generateValue: true
+      # Paste Neon's direct connection string (not the "-pooler" one) in the dashboard.
+      - key: DATABASE_URL
+        sync: false

@@ -22,6 +22,9 @@ function resolveBaseUrl(): string {
 
 export const API_URL = resolveBaseUrl();
 
+/** Long enough for a sleeping free-tier server to wake up (about a minute). */
+const REQUEST_TIMEOUT_MS = 75_000;
+
 export class ApiError extends Error {
   constructor(
     readonly status: number,
@@ -73,6 +76,10 @@ async function send<T>(
   token: string | null
 ): Promise<Envelope<T>> {
   let response: Response;
+  // A free host puts an idle server to sleep and takes about a minute to wake it,
+  // so wait that long, then say so instead of hanging forever.
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
   try {
     response = await fetch(buildUrl(path, opts.query), {
       method: opts.method ?? 'GET',
@@ -82,12 +89,17 @@ async function send<T>(
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
       body: opts.body !== undefined ? JSON.stringify(opts.body) : undefined,
+      signal: controller.signal,
     });
   } catch {
     throw new ApiError(
       0,
-      'No hay conexión con el servidor. Revisa tu internet e inténtalo de nuevo.'
+      controller.signal.aborted
+        ? 'El servidor tarda en responder; puede estar despertando. Inténtalo de nuevo en un momento.'
+        : 'No hay conexión con el servidor. Revisa tu internet e inténtalo de nuevo.'
     );
+  } finally {
+    clearTimeout(timer);
   }
 
   if (response.status === 204) return { data: undefined as T };
@@ -155,9 +167,10 @@ export const api = {
   get: <T>(path: string, query?: RequestOptions['query']) =>
     request<T>(path, { query }).then((r) => r.data),
   page: <T>(path: string, query?: RequestOptions['query']) =>
-    request<T[]>(path, { query }).then(
-      (r): Page<T> => ({ data: r.data, meta: r.meta ?? { has_more: false, limit: 0, offset: 0 } })
-    ),
+    request<T[]>(path, { query }).then((r): Page<T> => ({
+      data: r.data,
+      meta: r.meta ?? { has_more: false, limit: 0, offset: 0 },
+    })),
   post: <T>(path: string, body?: unknown, anonymous = false) =>
     request<T>(path, { method: 'POST', body, anonymous }).then((r) => r.data),
   put: <T>(path: string, body: unknown) =>
