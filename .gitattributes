@@ -1,0 +1,3 @@
+# Scripts and Dockerfiles run on Linux: keep LF even when Git on Windows converts.
+*.sh text eol=lf
+Dockerfile* text eol=lf

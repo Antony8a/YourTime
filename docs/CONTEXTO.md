@@ -217,6 +217,8 @@ acompañada de un cambio visual. Accesibilidad: niveles de encabezado (`Text` co
 | [`PRODUCT.md`](PRODUCT.md)                 | Todas las reglas de negocio                        |
 | [`API.md`](API.md)                         | Endpoints, errores y códigos                       |
 | [`DATA_MODEL.md`](DATA_MODEL.md)           | Decisiones del modelo de datos y concurrencia      |
+| [`ACCESO_REMOTO.md`](ACCESO_REMOTO.md)     | Usar la app desde cualquier red con tu PC          |
+| [`APK.md`](APK.md)                         | APK local y cómo encender todo en este PC          |
 | [`DESPLIEGUE.md`](DESPLIEGUE.md)           | API gratis en Render + Neon y el APK con EAS       |
 | [`ARCHITECTURE.md`](ARCHITECTURE.md)       | Stack, estructura, seguridad, calidad y producción |
 | [`ROADMAP.md`](ROADMAP.md)                 | Qué está hecho y qué sigue, en orden de prioridad  |
