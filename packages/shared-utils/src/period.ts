@@ -1,3 +1,5 @@
+import { msg, t } from './i18n';
+
 /**
  * Date ranges for reports. A range is two calendar days, both inclusive, written
  * as local "YYYY-MM-DD" keys so a day means the same thing everywhere (no time
@@ -13,23 +15,52 @@ export interface DateRange {
 
 export const ALL_TIME: DateRange = { from: null, to: null };
 
+/** Month names, as texts to translate where they are shown: `t(MONTHS[i])`. */
 export const MONTHS = [
-  'enero',
-  'febrero',
-  'marzo',
-  'abril',
-  'mayo',
-  'junio',
-  'julio',
-  'agosto',
-  'septiembre',
-  'octubre',
-  'noviembre',
-  'diciembre',
+  msg('enero'),
+  msg('febrero'),
+  msg('marzo'),
+  msg('abril'),
+  msg('mayo'),
+  msg('junio'),
+  msg('julio'),
+  msg('agosto'),
+  msg('septiembre'),
+  msg('octubre'),
+  msg('noviembre'),
+  msg('diciembre'),
 ] as const;
 
+/** Abbreviated months. Their own texts: cutting the full name gives "jui" for both June and July. */
+export const MONTHS_SHORT = [
+  msg('ene'),
+  msg('feb'),
+  msg('mar'),
+  msg('abr'),
+  msg('may'),
+  msg('jun'),
+  msg('jul'),
+  msg('ago'),
+  msg('sep'),
+  msg('oct'),
+  msg('nov'),
+  msg('dic'),
+] as const;
+
+/** The name of a month (0-11) in the current language. */
+export const monthName = (month: number): string => t(MONTHS[month]!);
+
 /** Monday first, as in most of the Spanish-speaking world. */
-export const WEEKDAYS = ['L', 'M', 'X', 'J', 'V', 'S', 'D'] as const;
+/** Monday first. One letter each; "X" is Wednesday so no two share a text. Translate with `t(letter)`. */
+export const WEEKDAYS = [
+  msg('L'),
+  msg('M'),
+  msg('X'),
+  msg('J'),
+  msg('V'),
+  msg('S'),
+  msg('D'),
+] as const;
 
 const pad = (n: number) => String(n).padStart(2, '0');
 
@@ -79,12 +110,12 @@ export const earlier = (a: DateKey, b: DateKey): DateKey => (a <= b ? a : b);
 export type PresetId = 'last7' | 'last30' | 'thisMonth' | 'lastMonth' | 'thisYear' | 'all';
 
 export const PRESETS: readonly { id: PresetId; label: string }[] = [
-  { id: 'last7', label: '7 días' },
-  { id: 'last30', label: '30 días' },
-  { id: 'thisMonth', label: 'Este mes' },
-  { id: 'lastMonth', label: 'Mes pasado' },
-  { id: 'thisYear', label: 'Este año' },
-  { id: 'all', label: 'Todo' },
+  { id: 'last7', label: msg('7 días') },
+  { id: 'last30', label: msg('30 días') },
+  { id: 'thisMonth', label: msg('Este mes') },
+  { id: 'lastMonth', label: msg('Mes pasado') },
+  { id: 'thisYear', label: msg('Este año') },
+  { id: 'all', label: msg('Todo') },
 ];
 
 export function presetRange(id: PresetId, today: Date): DateRange {
@@ -162,7 +193,7 @@ export function rangeBounds(range: DateRange): { from?: Date; to?: Date } {
 
 // ---- display ------------------------------------------------------------------
 
-const short = (key: DateKey) => MONTHS[Number(key.slice(5, 7)) - 1]!.slice(0, 3);
+const short = (key: DateKey) => t(MONTHS_SHORT[Number(key.slice(5, 7)) - 1]!);
 const dayOf = (key: DateKey) => Number(key.slice(8, 10));
 
 /** "12 oct 2026" */
@@ -173,9 +204,9 @@ export function formatDay(key: DateKey): string {
 /** "1 – 31 oct 2026", "28 sep – 5 oct 2026", "Todo el historial". */
 export function formatRange(range: DateRange): string {
   const { from, to } = range;
-  if (!from && !to) return 'Todo el historial';
-  if (from && !to) return `Desde ${formatDay(from)}`;
-  if (!from && to) return `Hasta ${formatDay(to)}`;
+  if (!from && !to) return t('Todo el historial');
+  if (from && !to) return t('Desde {date}', { date: formatDay(from) });
+  if (!from && to) return t('Hasta {date}', { date: formatDay(to) });
   const a = from as DateKey;
   const b = to as DateKey;
   if (a === b) return formatDay(a);
@@ -188,7 +219,7 @@ export function formatRange(range: DateRange): string {
 
 /** "octubre 2026" */
 export function formatMonth(year: number, month: number): string {
-  return `${MONTHS[month]} ${year}`;
+  return `${monthName(month)} ${year}`;
 }
 
 export interface CalendarCell {

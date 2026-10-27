@@ -1,3 +1,7 @@
+import { intlLocale, t, tn } from './i18n';
+
+type Unit = 'second' | 'minute' | 'hour' | 'day' | 'week' | 'month' | 'year';
+
 const UNITS: [limitSeconds: number, divisor: number, unit: Unit][] = [
   [60, 1, 'second'],
   [3600, 60, 'minute'],
@@ -8,60 +12,71 @@ const UNITS: [limitSeconds: number, divisor: number, unit: Unit][] = [
   [Infinity, 31557600, 'year'],
 ];
 
-type Unit = Intl.RelativeTimeFormatUnit;
-
-const SPANISH_UNITS: Record<string, [one: string, many: string]> = {
-  second: ['segundo', 'segundos'],
-  minute: ['minuto', 'minutos'],
-  hour: ['hora', 'horas'],
-  day: ['día', 'días'],
-  week: ['semana', 'semanas'],
-  month: ['mes', 'meses'],
-  year: ['año', 'años'],
-};
-
-const SPANISH_SPECIAL: Record<string, Record<number, string>> = {
-  day: { [-2]: 'anteayer', [-1]: 'ayer', 1: 'mañana', 2: 'pasado mañana' },
-  week: { [-1]: 'la semana pasada', 1: 'la próxima semana' },
-  month: { [-1]: 'el mes pasado', 1: 'el próximo mes' },
-  year: { [-1]: 'el año pasado', 1: 'el próximo año' },
-};
-
-/**
- * Hermes (React Native on Android) ships no Intl.RelativeTimeFormat, so Spanish
- * is spelled out by hand there. Other locales fall back to a plain English form.
- */
-function relativeFallback(value: number, unit: Unit, locale: string): string {
-  const abs = Math.abs(value);
-  if (!locale.startsWith('es')) {
-    const name = unit + (abs === 1 ? '' : 's');
-    return value < 0 ? `${abs} ${name} ago` : `in ${abs} ${name}`;
+/** "5 minutos", "1 hora": the amount of time on its own, in the current language. */
+function amount(unit: Unit, n: number): string {
+  switch (unit) {
+    case 'second':
+      return tn(n, '{count} segundo', '{count} segundos');
+    case 'minute':
+      return tn(n, '{count} minuto', '{count} minutos');
+    case 'hour':
+      return tn(n, '{count} hora', '{count} horas');
+    case 'day':
+      return tn(n, '{count} día', '{count} días');
+    case 'week':
+      return tn(n, '{count} semana', '{count} semanas');
+    case 'month':
+      return tn(n, '{count} mes', '{count} meses');
+    case 'year':
+      return tn(n, '{count} año', '{count} años');
   }
-  const special = SPANISH_SPECIAL[unit]?.[value];
-  if (special) return special;
-  const [one, many] = SPANISH_UNITS[unit] ?? [unit, unit];
-  const text = `${abs} ${abs === 1 ? one : many}`;
-  return value < 0 ? `hace ${text}` : `dentro de ${text}`;
 }
 
-function formatRelative(value: number, unit: Unit, locale: string): string {
-  if (typeof Intl !== 'undefined' && typeof Intl.RelativeTimeFormat === 'function') {
-    return new Intl.RelativeTimeFormat(locale, { numeric: 'auto' }).format(value, unit);
+/** The words some distances in time have of their own: "ayer", "mañana". */
+function special(unit: Unit, value: number): string | null {
+  if (unit === 'day') {
+    if (value === -2) return t('anteayer');
+    if (value === -1) return t('ayer');
+    if (value === 1) return t('mañana');
+    if (value === 2) return t('pasado mañana');
   }
-  return relativeFallback(value, unit, locale);
+  if (unit === 'week') {
+    if (value === -1) return t('la semana pasada');
+    if (value === 1) return t('la próxima semana');
+  }
+  if (unit === 'month') {
+    if (value === -1) return t('el mes pasado');
+    if (value === 1) return t('el próximo mes');
+  }
+  if (unit === 'year') {
+    if (value === -1) return t('el año pasado');
+    if (value === 1) return t('el próximo año');
+  }
+  return null;
+}
+
+/**
+ * Spelled out with our own texts rather than Intl.RelativeTimeFormat, which
+ * Hermes (React Native on Android) does not ship, so every platform reads the same.
+ */
+function formatRelative(value: number, unit: Unit): string {
+  const own = special(unit, value);
+  if (own) return own;
+  const text = amount(unit, Math.abs(value));
+  return value < 0 ? t('hace {text}', { text }) : t('dentro de {text}', { text });
 }
 
 /** "hace 5 minutos", "mañana", "dentro de 3 días". */
-export function timeAgo(iso: string, now: Date = new Date(), locale = 'es'): string {
+export function timeAgo(iso: string, now: Date = new Date()): string {
   const seconds = Math.round((new Date(iso).getTime() - now.getTime()) / 1000);
   const abs = Math.abs(seconds);
-  if (abs < 45) return locale.startsWith('es') ? 'ahora mismo' : 'just now';
+  if (abs < 45) return t('ahora mismo');
   const [, divisor, unit] = UNITS.find(([limit]) => abs < limit)!;
-  return formatRelative(Math.round(seconds / divisor), unit, locale);
+  return formatRelative(Math.round(seconds / divisor), unit);
 }
 
 /** "vie, 12 mar, 15:30" */
-export function formatDateTime(iso: string, locale = 'es'): string {
+export function formatDateTime(iso: string, locale = intlLocale()): string {
   return new Intl.DateTimeFormat(locale, {
     weekday: 'short',
     day: 'numeric',

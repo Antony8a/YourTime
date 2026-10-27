@@ -6,3 +6,5 @@ export * from './geo';
 export * from './period';
 export * from './reliability';
 export * from './server';
+export * from './i18n';
+import './i18n/index';

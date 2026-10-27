@@ -1,3 +1,5 @@
+import { intlLocale, msg, t } from './i18n';
+
 /**
  * Money helpers. Amounts are integers in minor units (cents) of an ISO 4217
  * currency. Most currencies have 2 decimals; the ones below do not. Keep
@@ -13,54 +15,54 @@ export interface CurrencyInfo {
 }
 
 export const SUPPORTED_CURRENCIES: readonly CurrencyInfo[] = [
-  { code: 'USD', name: 'Dólar estadounidense' },
-  { code: 'EUR', name: 'Euro' },
-  { code: 'GBP', name: 'Libra esterlina' },
-  { code: 'MXN', name: 'Peso mexicano' },
-  { code: 'COP', name: 'Peso colombiano' },
-  { code: 'ARS', name: 'Peso argentino' },
-  { code: 'CLP', name: 'Peso chileno' },
-  { code: 'PEN', name: 'Sol peruano' },
-  { code: 'UYU', name: 'Peso uruguayo' },
-  { code: 'BRL', name: 'Real brasileño' },
-  { code: 'BOB', name: 'Boliviano' },
-  { code: 'PYG', name: 'Guaraní' },
-  { code: 'VES', name: 'Bolívar venezolano' },
-  { code: 'DOP', name: 'Peso dominicano' },
-  { code: 'CRC', name: 'Colón costarricense' },
-  { code: 'GTQ', name: 'Quetzal' },
-  { code: 'HNL', name: 'Lempira' },
-  { code: 'NIO', name: 'Córdoba' },
-  { code: 'PAB', name: 'Balboa' },
-  { code: 'CAD', name: 'Dólar canadiense' },
-  { code: 'AUD', name: 'Dólar australiano' },
-  { code: 'NZD', name: 'Dólar neozelandés' },
-  { code: 'CHF', name: 'Franco suizo' },
-  { code: 'JPY', name: 'Yen japonés' },
-  { code: 'CNY', name: 'Yuan chino' },
-  { code: 'HKD', name: 'Dólar de Hong Kong' },
-  { code: 'TWD', name: 'Nuevo dólar taiwanés' },
-  { code: 'KRW', name: 'Won surcoreano' },
-  { code: 'SGD', name: 'Dólar de Singapur' },
-  { code: 'INR', name: 'Rupia india' },
-  { code: 'IDR', name: 'Rupia indonesia' },
-  { code: 'PHP', name: 'Peso filipino' },
-  { code: 'THB', name: 'Baht tailandés' },
-  { code: 'VND', name: 'Dong vietnamita' },
-  { code: 'MYR', name: 'Ringgit malayo' },
-  { code: 'SEK', name: 'Corona sueca' },
-  { code: 'NOK', name: 'Corona noruega' },
-  { code: 'DKK', name: 'Corona danesa' },
-  { code: 'PLN', name: 'Esloti polaco' },
-  { code: 'CZK', name: 'Corona checa' },
-  { code: 'TRY', name: 'Lira turca' },
-  { code: 'ZAR', name: 'Rand sudafricano' },
-  { code: 'AED', name: 'Dírham de los EAU' },
-  { code: 'SAR', name: 'Riyal saudí' },
-  { code: 'ILS', name: 'Nuevo séquel' },
-  { code: 'EGP', name: 'Libra egipcia' },
-  { code: 'NGN', name: 'Naira' },
-  { code: 'KES', name: 'Chelín keniano' },
+  { code: 'USD', name: msg('Dólar estadounidense') },
+  { code: 'EUR', name: msg('Euro') },
+  { code: 'GBP', name: msg('Libra esterlina') },
+  { code: 'MXN', name: msg('Peso mexicano') },
+  { code: 'COP', name: msg('Peso colombiano') },
+  { code: 'ARS', name: msg('Peso argentino') },
+  { code: 'CLP', name: msg('Peso chileno') },
+  { code: 'PEN', name: msg('Sol peruano') },
+  { code: 'UYU', name: msg('Peso uruguayo') },
+  { code: 'BRL', name: msg('Real brasileño') },
+  { code: 'BOB', name: msg('Boliviano') },
+  { code: 'PYG', name: msg('Guaraní') },
+  { code: 'VES', name: msg('Bolívar venezolano') },
+  { code: 'DOP', name: msg('Peso dominicano') },
+  { code: 'CRC', name: msg('Colón costarricense') },
+  { code: 'GTQ', name: msg('Quetzal') },
+  { code: 'HNL', name: msg('Lempira') },
+  { code: 'NIO', name: msg('Córdoba') },
+  { code: 'PAB', name: msg('Balboa') },
+  { code: 'CAD', name: msg('Dólar canadiense') },
+  { code: 'AUD', name: msg('Dólar australiano') },
+  { code: 'NZD', name: msg('Dólar neozelandés') },
+  { code: 'CHF', name: msg('Franco suizo') },
+  { code: 'JPY', name: msg('Yen japonés') },
+  { code: 'CNY', name: msg('Yuan chino') },
+  { code: 'HKD', name: msg('Dólar de Hong Kong') },
+  { code: 'TWD', name: msg('Nuevo dólar taiwanés') },
+  { code: 'KRW', name: msg('Won surcoreano') },
+  { code: 'SGD', name: msg('Dólar de Singapur') },
+  { code: 'INR', name: msg('Rupia india') },
+  { code: 'IDR', name: msg('Rupia indonesia') },
+  { code: 'PHP', name: msg('Peso filipino') },
+  { code: 'THB', name: msg('Baht tailandés') },
+  { code: 'VND', name: msg('Dong vietnamita') },
+  { code: 'MYR', name: msg('Ringgit malayo') },
+  { code: 'SEK', name: msg('Corona sueca') },
+  { code: 'NOK', name: msg('Corona noruega') },
+  { code: 'DKK', name: msg('Corona danesa') },
+  { code: 'PLN', name: msg('Esloti polaco') },
+  { code: 'CZK', name: msg('Corona checa') },
+  { code: 'TRY', name: msg('Lira turca') },
+  { code: 'ZAR', name: msg('Rand sudafricano') },
+  { code: 'AED', name: msg('Dírham de los EAU') },
+  { code: 'SAR', name: msg('Riyal saudí') },
+  { code: 'ILS', name: msg('Nuevo séquel') },
+  { code: 'EGP', name: msg('Libra egipcia') },
+  { code: 'NGN', name: msg('Naira') },
+  { code: 'KES', name: msg('Chelín keniano') },
 ];
 
 /** How many decimals the currency has (its minor-unit exponent). */
@@ -109,7 +111,7 @@ export function parseAmount(input: string): number | null {
 }
 
 /** Formats minor units as money, e.g. formatMoney(8000000, 'COP') gives "$ 80.000". */
-export function formatMoney(minor: number, code: string, locale = 'es'): string {
+export function formatMoney(minor: number, code: string, locale = intlLocale()): string {
   const decimals = currencyDecimals(code);
   const amount = fromMinor(minor, code);
   try {
@@ -133,8 +135,8 @@ export interface BudgetLike {
 }
 
 /** "$ 80.000 – $ 150.000", "$ 25.000 / h" or "A convenir". */
-export function formatBudget(b: BudgetLike, locale = 'es'): string {
-  if (b.min_minor == null || b.max_minor == null) return 'A convenir';
+export function formatBudget(b: BudgetLike, locale = intlLocale()): string {
+  if (b.min_minor == null || b.max_minor == null) return t('A convenir');
   const suffix = b.type === 'hourly' ? ' / h' : '';
   if (b.min_minor === b.max_minor) return formatMoney(b.min_minor, b.currency, locale) + suffix;
   return `${formatMoney(b.min_minor, b.currency, locale)} – ${formatMoney(b.max_minor, b.currency, locale)}${suffix}`;
