@@ -31,6 +31,7 @@ type Options struct {
 	Reviews      *handlers.ReviewHandler
 	Balance      *handlers.BalanceHandler
 	Rates        *handlers.RatesHandler
+	Wallet       *handlers.WalletHandler
 
 	// Per-IP request budgets per minute. Zero selects the defaults.
 	GlobalPerMinute int
@@ -92,6 +93,18 @@ func New(ctx context.Context, o Options) *Router {
 			r.Get("/me/active", o.Tasks.Active)
 			r.Get("/me/balance", o.Balance.Get)
 			r.Get("/rates", o.Rates.Get)
+			r.Get("/me/wallet", o.Wallet.Get)
+			r.Get("/me/wallet/transactions", o.Wallet.Transactions)
+			r.Post("/me/wallet/test-topup", o.Wallet.TestTopup)
+			r.Post("/me/wallet/redeem", o.Wallet.Redeem)
+
+			// The administrator's tools; each one checks the caller again.
+			r.Get("/admin/overview", o.Wallet.AdminOverview)
+			r.Put("/admin/settings", o.Wallet.UpdateSettings)
+			r.Get("/admin/promotions", o.Wallet.Promotions)
+			r.Post("/admin/promotions", o.Wallet.CreatePromotion)
+			r.Patch("/admin/promotions/{id}", o.Wallet.UpdatePromotion)
+			r.Post("/admin/credit", o.Wallet.ManualCredit)
 
 			r.Get("/tasks", o.Tasks.List)
 			r.Post("/tasks", o.Tasks.Create)
@@ -107,6 +120,7 @@ func New(ctx context.Context, o Options) *Router {
 				r.Get("/applications", o.Applications.ListForTask)
 				r.Post("/applications", o.Applications.Apply)
 				r.Post("/reviews", o.Reviews.Create)
+				r.Get("/fee-quote", o.Wallet.FeeQuote)
 			})
 
 			r.Post("/applications/{id}/accept", o.Applications.Accept)

@@ -65,6 +65,13 @@ func Migrate(url, direction string) error {
 
 const pgUniqueViolation = "23505"
 
+// isCurrencyLocked reports the trigger of migration 00008: the account currency
+// cannot change once the person has a wallet.
+func isCurrencyLocked(err error) bool {
+	var pgErr *pgconn.PgError
+	return errors.As(err, &pgErr) && pgErr.Message == "currency_locked"
+}
+
 func isUniqueViolation(err error, constraint string) bool {
 	var pgErr *pgconn.PgError
 	if errors.As(err, &pgErr) && pgErr.Code == pgUniqueViolation {

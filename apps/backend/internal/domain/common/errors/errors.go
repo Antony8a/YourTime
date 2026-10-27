@@ -11,6 +11,8 @@ var (
 	ErrUnauthorized = errors.New("unauthorized")
 	ErrForbidden    = errors.New("forbidden")
 	ErrConflict     = errors.New("conflict")
+	// ErrPaymentRequired is for something that needs funds the person does not have.
+	ErrPaymentRequired = errors.New("payment required")
 	// ErrUnavailable is for something outside our control (a data source) being down.
 	ErrUnavailable = errors.New("temporarily unavailable")
 )

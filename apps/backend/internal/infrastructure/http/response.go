@@ -75,6 +75,7 @@ var categories = []struct {
 	{derr.ErrUnauthorized, http.StatusUnauthorized},
 	{derr.ErrForbidden, http.StatusForbidden},
 	{derr.ErrConflict, http.StatusConflict},
+	{derr.ErrPaymentRequired, http.StatusPaymentRequired},
 	{derr.ErrUnavailable, http.StatusServiceUnavailable},
 }
 

@@ -148,11 +148,19 @@ func (r *TaskRepo) Mutate(ctx context.Context, id uuid.UUID, fn func(*task.Task)
 	if err != nil {
 		return err
 	}
+	prevStatus, prevWorker := t.Status, t.AssignedApplicantID
 	if err := fn(t); err != nil {
 		return err
 	}
 	if err := saveTask(ctx, tx, t); err != nil {
 		return err
+	}
+	// A cancelled service that had not started gives the commission back.
+	if t.Status == task.StatusCancelled && prevWorker != nil &&
+		(prevStatus == task.StatusAssigned || prevStatus == task.StatusEnRoute) {
+		if err := refundTaskFee(ctx, tx, id, *prevWorker, time.Now().UTC()); err != nil {
+			return err
+		}
 	}
 	return tx.Commit(ctx)
 }

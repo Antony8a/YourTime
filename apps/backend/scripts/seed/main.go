@@ -13,12 +13,16 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
+	apprates "github.com/yourtime/backend/internal/application/rates"
 	"github.com/yourtime/backend/internal/application/reviews"
 	"github.com/yourtime/backend/internal/application/tasks"
+	appwallet "github.com/yourtime/backend/internal/application/wallet"
 	"github.com/yourtime/backend/internal/config"
 	"github.com/yourtime/backend/internal/domain/common/valueobjects"
 	"github.com/yourtime/backend/internal/domain/user"
+	"github.com/yourtime/backend/internal/domain/wallet"
 	"github.com/yourtime/backend/internal/infrastructure/persistence/postgres"
+	httprates "github.com/yourtime/backend/internal/infrastructure/rates"
 )
 
 // demoPassword is shared by every demo account. Set SEED_PASSWORD to something private
@@ -41,6 +45,8 @@ type demoUser struct {
 	email, name, currency, city string
 	lat, lng                    float64
 	radius                      *int
+	// walletMinor is the starting wallet balance, in the person's currency.
+	walletMinor int64
 }
 
 func run() error {
@@ -61,14 +67,19 @@ func run() error {
 	users := user.NewService(userRepo)
 	reviewRepo := postgres.NewReviewRepo(pool)
 	svc := tasks.NewService(taskRepo, appRepo, userRepo, reviewRepo)
+	// Taking a task costs the commission, so the demo people need a wallet. The rates
+	// come from the public source, with fixed ones as a fallback so seeding works offline.
+	walletRepo := postgres.NewWalletRepo(pool)
+	ratesSvc := apprates.NewService(postgres.NewRatesRepo(pool), offlineFallback{httprates.NewHTTPProvider()})
+	svc.WithFees(appwallet.NewService(walletRepo, userRepo, ratesSvc, nil))
 	rsvc := reviews.NewService(reviewRepo, taskRepo)
 
 	radius := 15
 	demo := []demoUser{
-		{"ana@yourtime.dev", "Ana Restrepo", "COP", "Medellín", 6.2442, -75.5812, &radius},
-		{"luis@yourtime.dev", "Luis Herrera", "USD", "Envigado", 6.1759, -75.5917, nil},
-		{"marta@yourtime.dev", "Marta Ruiz", "EUR", "Sabaneta", 6.1515, -75.6166, &radius},
-		{"carlos@yourtime.dev", "Carlos Gómez", "COP", "Medellín", 6.2518, -75.5636, &radius},
+		{"ana@yourtime.dev", "Ana Restrepo", "COP", "Medellín", 6.2442, -75.5812, &radius, 80_000_000},
+		{"luis@yourtime.dev", "Luis Herrera", "USD", "Envigado", 6.1759, -75.5917, nil, 20_000},
+		{"marta@yourtime.dev", "Marta Ruiz", "EUR", "Sabaneta", 6.1515, -75.6166, &radius, 20_000},
+		{"carlos@yourtime.dev", "Carlos Gómez", "COP", "Medellín", 6.2518, -75.5636, &radius, 80_000_000},
 	}
 
 	ids := make([]uuid.UUID, len(demo))
@@ -90,6 +101,12 @@ func run() error {
 			return err
 		}
 		ids[i] = u.ID
+		// Enough to take many tasks: about 200 dollars in the person's own currency.
+		if _, err := walletRepo.Credit(ctx, wallet.CreditInput{
+			UserID: u.ID, AmountMinor: d.walletMinor, Currency: cur, Kind: wallet.KindTopupManual, Note: "Demo balance", Now: time.Now().UTC(),
+		}); err != nil {
+			return err
+		}
 	}
 
 	cats, err := svc.Categories(ctx)
@@ -239,4 +256,21 @@ func (j pastJob) backdate(ctx context.Context, pool *pgxpool.Pool, taskID uuid.U
 		WHERE id=$1`,
 		taskID, completed, started, setOut, setOut.Add(-minutes(j.respondMin)), started.Add(-minutes(j.lateMin)), tripEstimateSeconds)
 	return err
+}
+
+// offlineFallback asks the public rate source and, if it cannot be reached, answers
+// with fixed approximate rates, so the demo data can be loaded without a network.
+// The server replaces them with real ones as soon as it can fetch.
+type offlineFallback struct {
+	real interface {
+		Latest(context.Context) (map[valueobjects.Currency]float64, error)
+	}
+}
+
+func (o offlineFallback) Latest(ctx context.Context) (map[valueobjects.Currency]float64, error) {
+	if rates, err := o.real.Latest(ctx); err == nil {
+		return rates, nil
+	}
+	fmt.Println("Could not reach the exchange-rate source: using fixed demo rates.")
+	return map[valueobjects.Currency]float64{"USD": 1, "COP": 4000, "EUR": 0.9, "MXN": 18, "BRL": 5, "GBP": 0.78}, nil
 }

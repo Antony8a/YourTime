@@ -28,11 +28,17 @@ type Service struct {
 	tokens TokenManager
 	// registrationClosed refuses new accounts; people who already have one still sign in.
 	registrationClosed bool
+	// onRegistered runs after an account is created, e.g. to give a sign-up credit. It
+	// must not fail the sign-up, so it returns nothing.
+	onRegistered func(ctx context.Context, u *user.User)
 }
 
 func NewService(users *user.Service, tokens TokenManager) *Service {
 	return &Service{users: users, tokens: tokens}
 }
+
+// OnRegistered sets what happens right after a new account is created.
+func (s *Service) OnRegistered(f func(ctx context.Context, u *user.User)) { s.onRegistered = f }
 
 // CloseRegistration makes Register refuse every request.
 func (s *Service) CloseRegistration() { s.registrationClosed = true }
@@ -79,6 +85,9 @@ func (s *Service) Register(ctx context.Context, in RegisterInput) (*Session, err
 	})
 	if err != nil {
 		return nil, err
+	}
+	if s.onRegistered != nil {
+		s.onRegistered(ctx, u)
 	}
 	return s.session(u)
 }

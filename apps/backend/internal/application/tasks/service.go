@@ -13,6 +13,7 @@ import (
 	"github.com/yourtime/backend/internal/domain/review"
 	"github.com/yourtime/backend/internal/domain/task"
 	"github.com/yourtime/backend/internal/domain/user"
+	"github.com/yourtime/backend/internal/domain/wallet"
 )
 
 const (
@@ -20,16 +21,30 @@ const (
 	MaxPageSize     = 50
 )
 
+// FeeQuoter works out the platform commission a person would owe for a task and
+// whether their wallet covers it. Without one, taking a task is free.
+type FeeQuoter interface {
+	Quote(ctx context.Context, userID uuid.UUID, priceMinor int64, priceCur valueobjects.Currency) (wallet.Quote, error)
+}
+
 type Service struct {
 	tasks   task.Repository
 	apps    task.ApplicationRepository
 	users   user.Repository
 	reviews review.Repository
+	fees    FeeQuoter
 	now     func() time.Time
 }
 
 func NewService(tasks task.Repository, apps task.ApplicationRepository, users user.Repository, reviews review.Repository) *Service {
 	return &Service{tasks: tasks, apps: apps, users: users, reviews: reviews, now: func() time.Time { return time.Now().UTC() }}
+}
+
+// WithFees makes taking a task cost the platform commission: applying needs a wallet
+// balance that covers it, and being chosen charges it.
+func (s *Service) WithFees(f FeeQuoter) *Service {
+	s.fees = f
+	return s
 }
 
 // ---- results --------------------------------------------------------------
@@ -331,9 +346,37 @@ func (s *Service) page(ctx context.Context, f task.SearchFilter, viewer *user.Us
 // ---- applications ---------------------------------------------------------
 
 func (s *Service) Apply(ctx context.Context, applicantID, taskID uuid.UUID, priceMinor int64, message string) (*task.Application, error) {
+	// A person can only offer to do what they could pay the commission on. The check
+	// is repeated, for real, when they are chosen: the balance can change by then.
+	if s.fees != nil && priceMinor > 0 {
+		v, err := s.tasks.GetView(ctx, taskID, applicantID, nil)
+		if err != nil {
+			return nil, err
+		}
+		q, err := s.fees.Quote(ctx, applicantID, priceMinor, v.Budget.Currency)
+		if err != nil {
+			return nil, err
+		}
+		if !q.Enough() {
+			return nil, wallet.ErrInsufficientBalance
+		}
+	}
 	return s.apps.Create(ctx, taskID, func(t *task.Task) (*task.Application, error) {
 		return task.NewApplication(t, applicantID, priceMinor, message, s.now())
 	})
+}
+
+// FeeQuote is what the person would owe in commission if they were chosen for the
+// task at priceMinor, and whether their wallet covers it.
+func (s *Service) FeeQuote(ctx context.Context, userID, taskID uuid.UUID, priceMinor int64) (wallet.Quote, error) {
+	if s.fees == nil {
+		return wallet.Quote{}, nil
+	}
+	v, err := s.tasks.GetView(ctx, taskID, userID, nil)
+	if err != nil {
+		return wallet.Quote{}, err
+	}
+	return s.fees.Quote(ctx, userID, priceMinor, v.Budget.Currency)
 }
 
 // Applications lists the offers on a task. Only its poster may see them, and
@@ -372,7 +415,24 @@ func (s *Service) MyApplications(ctx context.Context, applicantID uuid.UUID, lim
 // Accept chooses an applicant: the task becomes assigned and every other
 // pending offer is rejected, atomically.
 func (s *Service) Accept(ctx context.Context, actor, applicationID uuid.UUID) (*task.ApplicationView, error) {
-	if err := s.apps.Accept(ctx, applicationID, actor, s.now()); err != nil {
+	var fee *task.FeeCharge
+	if s.fees != nil {
+		offer, err := s.apps.Get(ctx, applicationID)
+		if err != nil {
+			return nil, err
+		}
+		if offer.Task.PosterID != actor {
+			return nil, task.ErrNotOwner
+		}
+		q, err := s.fees.Quote(ctx, offer.ApplicantID, offer.PriceMinor, offer.Task.Currency)
+		if err != nil {
+			return nil, err
+		}
+		if q.FeeMinor > 0 {
+			fee = &task.FeeCharge{AmountMinor: q.FeeMinor, Currency: q.Currency}
+		}
+	}
+	if err := s.apps.Accept(ctx, applicationID, actor, s.now(), fee); err != nil {
 		return nil, err
 	}
 	v, err := s.apps.Get(ctx, applicationID)

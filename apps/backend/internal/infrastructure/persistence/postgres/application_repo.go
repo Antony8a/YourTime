@@ -151,7 +151,7 @@ func (r *ApplicationRepo) Transition(ctx context.Context, id uuid.UUID, to task.
 	return nil
 }
 
-func (r *ApplicationRepo) Accept(ctx context.Context, applicationID, actor uuid.UUID, now time.Time) error {
+func (r *ApplicationRepo) Accept(ctx context.Context, applicationID, actor uuid.UUID, now time.Time, fee *task.FeeCharge) error {
 	tx, err := r.pool.Begin(ctx)
 	if err != nil {
 		return err
@@ -191,6 +191,16 @@ func (r *ApplicationRepo) Accept(ctx context.Context, applicationID, actor uuid.
 		// The unique indexes on active services are what stop a second concurrent
 		// choice; translate them into the matching domain errors.
 		return mapActiveServiceViolation(err)
+	}
+	if fee != nil && fee.AmountMinor > 0 {
+		if err := chargeFee(ctx, tx, app.ApplicantID, fee.AmountMinor, fee.Currency, t.ID, now); err != nil {
+			return err
+		}
+		if _, err := tx.Exec(ctx,
+			`UPDATE tasks SET platform_fee_minor=$2, platform_fee_currency=$3 WHERE id=$1`,
+			t.ID, fee.AmountMinor, fee.Currency.String()); err != nil {
+			return err
+		}
 	}
 	if _, err := tx.Exec(ctx,
 		`UPDATE applications SET status='accepted', updated_at=$2 WHERE id=$1`, app.ID, now); err != nil {
@@ -232,6 +242,10 @@ func (r *ApplicationRepo) Release(ctx context.Context, taskID, actor uuid.UUID, 
 		return err
 	}
 	if err := saveTask(ctx, tx, t); err != nil {
+		return err
+	}
+	// The service will not happen: the commission goes back to the worker.
+	if err := refundTaskFee(ctx, tx, taskID, actor, now); err != nil {
 		return err
 	}
 	if chosen != nil {

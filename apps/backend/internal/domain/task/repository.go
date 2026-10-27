@@ -64,6 +64,13 @@ type Brief struct {
 	PosterName string
 }
 
+// FeeCharge is a commission to take from the chosen worker's wallet. Currency is
+// the wallet's, not the task's.
+type FeeCharge struct {
+	AmountMinor int64
+	Currency    valueobjects.Currency
+}
+
 type ApplicationView struct {
 	Application
 	Applicant Party
@@ -123,7 +130,12 @@ type ApplicationRepository interface {
 	Transition(ctx context.Context, id uuid.UUID, to ApplicationStatus, now time.Time) error
 	// Accept atomically assigns the application's task to its applicant and
 	// rejects every other pending application on that task.
-	Accept(ctx context.Context, applicationID, actor uuid.UUID, now time.Time) error
+	//
+	// fee, if not nil, is the platform commission taken from the chosen worker's wallet
+	// in the same transaction: if it cannot be covered the choice does not happen
+	// (wallet.ErrApplicantShort). It is given back if the service falls through
+	// before it starts.
+	Accept(ctx context.Context, applicationID, actor uuid.UUID, now time.Time, fee *FeeCharge) error
 	// Release lets the chosen worker give the task back before starting it:
 	// the task reopens and their application is withdrawn, atomically.
 	Release(ctx context.Context, taskID, actor uuid.UUID, now time.Time) error

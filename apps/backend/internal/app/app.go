@@ -5,7 +5,10 @@ package app
 
 import (
 	"context"
+	"net/http"
 	"time"
+
+	"github.com/google/uuid"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/yourtime/backend/internal/application/auth"
@@ -13,9 +16,11 @@ import (
 	apprates "github.com/yourtime/backend/internal/application/rates"
 	"github.com/yourtime/backend/internal/application/reviews"
 	"github.com/yourtime/backend/internal/application/tasks"
+	appwallet "github.com/yourtime/backend/internal/application/wallet"
 	"github.com/yourtime/backend/internal/config"
 	"github.com/yourtime/backend/internal/domain/rates"
 	"github.com/yourtime/backend/internal/domain/user"
+	"github.com/yourtime/backend/internal/domain/wallet"
 	"github.com/yourtime/backend/internal/infrastructure/http/handlers"
 	"github.com/yourtime/backend/internal/infrastructure/http/router"
 	"github.com/yourtime/backend/internal/infrastructure/persistence/postgres"
@@ -46,6 +51,7 @@ func NewRouter(ctx context.Context, cfg *config.Config, log logger.Logger, pool 
 	reviewRepo := postgres.NewReviewRepo(pool)
 	balanceRepo := postgres.NewBalanceRepo(pool)
 	ratesRepo := postgres.NewRatesRepo(pool)
+	walletRepo := postgres.NewWalletRepo(pool)
 
 	jwt := security.NewJWTManager(cfg.JWT.Secret, cfg.JWT.AccessTTL, cfg.JWT.RefreshTTL)
 	userSvc := user.NewService(userRepo)
@@ -64,19 +70,29 @@ func NewRouter(ctx context.Context, cfg *config.Config, log logger.Logger, pool 
 		go ratesSvc.Run(ctx, ratesRefreshEvery)
 	}
 	balanceSvc := appbalance.NewService(balanceRepo, userRepo, ratesSvc)
+	walletSvc := appwallet.NewService(walletRepo, userRepo, ratesSvc, cfg.AdminEmails)
+	taskSvc.WithFees(walletSvc)
+	authSvc.OnRegistered(func(ctx context.Context, u *user.User) {
+		if err := walletSvc.GrantSignup(ctx, u); err != nil {
+			log.Warn().Err(err).Str("user", u.ID.String()).Msg("Could not give the sign-up credit")
+		}
+	})
 
 	return router.New(ctx, router.Options{
-		Logger:          log,
-		CORSOrigins:     cfg.CORSOrigins,
-		TrustProxy:      cfg.TrustProxy,
-		TokenParser:     jwt,
-		Auth:            handlers.NewAuthHandler(authSvc),
-		Me:              handlers.NewMeHandler(userSvc),
-		Tasks:           handlers.NewTaskHandler(taskSvc),
-		Applications:    handlers.NewApplicationHandler(taskSvc),
-		Reviews:         handlers.NewReviewHandler(reviewSvc),
-		Balance:         handlers.NewBalanceHandler(balanceSvc),
-		Rates:           handlers.NewRatesHandler(ratesSvc),
+		Logger:       log,
+		CORSOrigins:  cfg.CORSOrigins,
+		TrustProxy:   cfg.TrustProxy,
+		TokenParser:  jwt,
+		Auth:         handlers.NewAuthHandler(authSvc),
+		Me:           handlers.NewMeHandler(userSvc),
+		Tasks:        handlers.NewTaskHandler(taskSvc),
+		Applications: handlers.NewApplicationHandler(taskSvc),
+		Reviews:      handlers.NewReviewHandler(reviewSvc),
+		Balance:      handlers.NewBalanceHandler(balanceSvc),
+		Rates:        handlers.NewRatesHandler(ratesSvc),
+		Wallet: handlers.NewWalletHandler(walletSvc, func(r *http.Request, userID, taskID uuid.UUID, priceMinor int64) (wallet.Quote, error) {
+			return taskSvc.FeeQuote(r.Context(), userID, taskID, priceMinor)
+		}),
 		GlobalPerMinute: ov.GlobalPerMinute,
 		AuthPerMinute:   ov.AuthPerMinute,
 	})

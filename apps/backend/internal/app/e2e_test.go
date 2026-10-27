@@ -115,6 +115,10 @@ func setupWith(t *testing.T, tweak func(*config.Config)) (*api, *pgxpool.Pool) {
 	if err := postgres.Migrate(url, "up"); err != nil {
 		t.Fatal(err)
 	}
+	// The wallet is tested on its own; every other flow runs without a commission.
+	if _, err := pool.Exec(ctx, `UPDATE platform_settings SET fee_bps = 0`); err != nil {
+		t.Fatal(err)
+	}
 	cfg := &config.Config{Env: "test", RegistrationOpen: true, CORSOrigins: []string{"http://localhost"}, JWT: config.JWTConfig{
 		Secret: "test-secret-test-secret-test-secret-123", AccessTTL: time.Hour, RefreshTTL: 24 * time.Hour,
 	}}

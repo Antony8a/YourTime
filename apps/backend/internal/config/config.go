@@ -27,7 +27,10 @@ type Config struct {
 	// RegistrationOpen lets anyone create an account. Turn it off once the people
 	// who should have one do, so a server on the internet is not open to strangers.
 	RegistrationOpen bool
-	JWT              JWTConfig
+	// AdminEmails are the accounts allowed to set the commission, create promotions and
+	// credit wallets. It lives here, not in the database, so nobody can grant it from the app.
+	AdminEmails []string
+	JWT         JWTConfig
 }
 
 type JWTConfig struct {
@@ -46,6 +49,7 @@ func Load() (*Config, error) {
 		CORSOrigins:      splitList(getenv("CORS_ORIGINS", "http://localhost:8081,http://localhost:19006")),
 		TrustProxy:       getbool("TRUST_PROXY", false),
 		RegistrationOpen: getbool("REGISTRATION_OPEN", true),
+		AdminEmails:      splitList(strings.ToLower(getenv("ADMIN_EMAILS", ""))),
 		JWT: JWTConfig{
 			Secret: os.Getenv("JWT_SECRET"),
 		},

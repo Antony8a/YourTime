@@ -122,6 +122,9 @@ func (r *UserRepo) Update(ctx context.Context, u *user.User) error {
 		WHERE id=$1`,
 		u.ID, u.FullName, phone, u.AvatarURL, u.Bio, u.Currency.String(),
 		lat, lng, city, u.SearchRadiusKm, string(u.Status), u.LastLoginAt, u.PasswordHash, u.UpdatedAt, languageArg(u.Language))
+	if isCurrencyLocked(err) {
+		return user.ErrCurrencyLocked
+	}
 	if err != nil {
 		return err
 	}
