@@ -57,13 +57,15 @@ type LocationDTO struct {
 }
 
 type UserDTO struct {
-	ID             uuid.UUID    `json:"id"`
-	Email          string       `json:"email"`
-	FullName       string       `json:"full_name"`
-	Phone          *string      `json:"phone"`
-	AvatarURL      *string      `json:"avatar_url"`
-	Bio            *string      `json:"bio"`
-	Currency       string       `json:"currency"`
+	ID        uuid.UUID `json:"id"`
+	Email     string    `json:"email"`
+	FullName  string    `json:"full_name"`
+	Phone     *string   `json:"phone"`
+	AvatarURL *string   `json:"avatar_url"`
+	Bio       *string   `json:"bio"`
+	Currency  string    `json:"currency"`
+	// Language is the app language the person chose; null follows the device.
+	Language       *string      `json:"language"`
 	Location       *LocationDTO `json:"location"`
 	SearchRadiusKm *int         `json:"search_radius_km"`
 	Rating         RatingDTO    `json:"rating"`
@@ -74,6 +76,10 @@ func toUserDTO(u *user.User) UserDTO {
 	dto := UserDTO{
 		ID: u.ID, Email: u.Email.String(), FullName: u.FullName, AvatarURL: u.AvatarURL, Bio: u.Bio,
 		Currency: u.Currency.String(), SearchRadiusKm: u.SearchRadiusKm, Rating: toRatingDTO(u.Rating), CreatedAt: u.CreatedAt,
+	}
+	if u.Language != nil {
+		l := u.Language.String()
+		dto.Language = &l
 	}
 	if u.Phone != nil {
 		p := u.Phone.String()

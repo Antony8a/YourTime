@@ -42,6 +42,9 @@ type User struct {
 	// default to it, and every amount they see is formatted with it.
 	Currency valueobjects.Currency
 
+	// Language is the language the person chose for the app; nil follows the device.
+	Language *valueobjects.Language
+
 	Location *Location
 
 	// SearchRadiusKm is the preferred maximum distance for browsing tasks.
@@ -87,6 +90,10 @@ type ProfileUpdate struct {
 	Currency  *valueobjects.Currency
 	Location  *Location
 
+	// Language sets the app language; ClearLanguage goes back to following the device.
+	Language      *valueobjects.Language
+	ClearLanguage bool
+
 	SetRadius      bool
 	SearchRadiusKm *int
 }
@@ -124,6 +131,12 @@ func (u *User) ApplyProfileUpdate(p ProfileUpdate) error {
 	}
 	if p.Currency != nil {
 		u.Currency = *p.Currency
+	}
+	if p.Language != nil {
+		u.Language = p.Language
+	}
+	if p.ClearLanguage {
+		u.Language = nil
 	}
 	if p.Location != nil {
 		loc := *p.Location

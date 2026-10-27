@@ -106,6 +106,8 @@ export interface User {
   bio: string | null;
   /** ISO 4217 account currency. Amounts the person sees use it as default. */
   currency: string;
+  /** The app language the person chose ("es", "en", "pt", "fr"); null follows the device. */
+  language: string | null;
   location: Location | null;
   /** Preferred browsing radius in km; null means no limit. Never blocks applying. */
   search_radius_km: number | null;
@@ -126,6 +128,8 @@ export interface RegisterRequest {
   password: string;
   full_name: string;
   currency?: string;
+  /** A language or device locale ("es", "pt-BR"); omit to follow the device. */
+  language?: string;
 }
 
 export interface LoginRequest {
@@ -139,6 +143,8 @@ export interface UpdateMeRequest {
   avatar_url?: string;
   phone?: string;
   currency?: string;
+  /** A language to choose, or "" to go back to following the device. */
+  language?: string;
   location?: { latitude: number; longitude: number; city?: string };
   /** Number to set, null to clear (no limit), omit to leave unchanged. */
   search_radius_km?: number | null;

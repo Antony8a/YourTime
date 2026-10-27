@@ -24,6 +24,8 @@ type registerRequest struct {
 	Password string `json:"password" validate:"required,min=8,max=72"`
 	FullName string `json:"full_name" validate:"required,min=1,max=150"`
 	Currency string `json:"currency" validate:"omitempty,len=3"`
+	// Language is a base code or a device locale ("es", "pt-BR"); optional.
+	Language string `json:"language" validate:"omitempty,max=10"`
 }
 
 func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
@@ -32,7 +34,7 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	s, err := h.auth.Register(r.Context(), auth.RegisterInput{
-		Email: req.Email, Password: req.Password, FullName: req.FullName, Currency: req.Currency,
+		Email: req.Email, Password: req.Password, FullName: req.FullName, Currency: req.Currency, Language: req.Language,
 	})
 	if err != nil {
 		httpx.HandleError(w, r, err)
@@ -120,7 +122,9 @@ type updateMeRequest struct {
 	AvatarURL *string `json:"avatar_url" validate:"omitempty,url,max=500"`
 	Phone     *string `json:"phone"`
 	Currency  *string `json:"currency" validate:"omitempty,len=3"`
-	Location  *struct {
+	// Language is the app language; "" goes back to following the device.
+	Language *string `json:"language" validate:"omitempty,max=10"`
+	Location *struct {
 		Latitude  *float64 `json:"latitude" validate:"required,gte=-90,lte=90"`
 		Longitude *float64 `json:"longitude" validate:"required,gte=-180,lte=180"`
 		City      string   `json:"city" validate:"max=100"`
@@ -153,6 +157,18 @@ func (h *MeHandler) Update(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		upd.Currency = &c
+	}
+	if req.Language != nil {
+		if *req.Language == "" {
+			upd.ClearLanguage = true
+		} else {
+			l, err := valueobjects.NewLanguage(*req.Language)
+			if err != nil {
+				httpx.HandleError(w, r, err)
+				return
+			}
+			upd.Language = &l
+		}
 	}
 	if req.Location != nil {
 		coords, err := valueobjects.NewCoordinates(*req.Location.Latitude, *req.Location.Longitude)

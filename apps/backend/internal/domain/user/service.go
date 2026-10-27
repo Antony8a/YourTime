@@ -24,6 +24,8 @@ type RegisterInput struct {
 	Password string
 	FullName string
 	Currency valueobjects.Currency
+	// Language is optional; nil follows the device.
+	Language *valueobjects.Language
 }
 
 func (s *Service) Register(ctx context.Context, in RegisterInput) (*User, error) {
@@ -38,6 +40,7 @@ func (s *Service) Register(ctx context.Context, in RegisterInput) (*User, error)
 	if err != nil {
 		return nil, err
 	}
+	u.Language = in.Language
 	if err := s.repo.Create(ctx, u); err != nil {
 		return nil, err
 	}

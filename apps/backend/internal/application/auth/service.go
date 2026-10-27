@@ -48,6 +48,8 @@ type RegisterInput struct {
 	FullName string
 	// Currency is optional; defaults to valueobjects.DefaultCurrency.
 	Currency string
+	// Language is optional; empty follows the device.
+	Language string
 }
 
 func (s *Service) Register(ctx context.Context, in RegisterInput) (*Session, error) {
@@ -64,8 +66,16 @@ func (s *Service) Register(ctx context.Context, in RegisterInput) (*Session, err
 			return nil, err
 		}
 	}
+	var language *valueobjects.Language
+	if in.Language != "" {
+		l, err := valueobjects.NewLanguage(in.Language)
+		if err != nil {
+			return nil, err
+		}
+		language = &l
+	}
 	u, err := s.users.Register(ctx, user.RegisterInput{
-		Email: email, Password: in.Password, FullName: in.FullName, Currency: currency,
+		Email: email, Password: in.Password, FullName: in.FullName, Currency: currency, Language: language,
 	})
 	if err != nil {
 		return nil, err

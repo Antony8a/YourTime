@@ -13,6 +13,7 @@ var (
 	ErrInvalidPhone       = derr.New(derr.ErrInvalidInput, "invalid_phone", "invalid phone, expected E.164 like +573001234567")
 	ErrInvalidPassword    = derr.New(derr.ErrInvalidInput, "invalid_password", "password must be between 8 and 72 characters")
 	ErrInvalidCurrency    = derr.New(derr.ErrInvalidInput, "invalid_currency", "unsupported currency code")
+	ErrInvalidLanguage    = derr.New(derr.ErrInvalidInput, "invalid_language", "unsupported language")
 	ErrInvalidCoordinates = derr.New(derr.ErrInvalidInput, "invalid_coordinates", "invalid coordinates")
 )
 
