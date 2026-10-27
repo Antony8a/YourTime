@@ -99,12 +99,6 @@ export default function LoginScreen() {
       </View>
 
       <ServerLink />
-
-      {__DEV__ ? (
-        <Text variant="caption" tone="subtle" style={styles.dev}>
-          Cuenta de prueba: ana@yourtime.dev · contraseña yourtime123
-        </Text>
-      ) : null}
     </Screen>
   );
 }
@@ -129,5 +123,4 @@ const styles = StyleSheet.create({
     marginTop: space.xxl,
   },
   link: { fontWeight: '700' },
-  dev: { textAlign: 'center', marginTop: space.xxl },
 });

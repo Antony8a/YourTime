@@ -20,8 +20,11 @@ Ya está hecho en el repositorio, pero comprueba que se aplicó en tu PC:
   código, y cualquiera podría fabricarse un token. Si el archivo no existe, copia `.env.example`, pon
   `APP_ENV=production` y un secreto de 32+ caracteres (`openssl rand -base64 48`).
 - **Postgres solo local.** El puerto 5432 está publicado solo en `127.0.0.1`.
-- **Sin cuentas de demostración.** `ana@yourtime.dev` y las demás tienen la contraseña `yourtime123`,
-  conocida por cualquiera que lea el repositorio. Bórralas (paso 2).
+- **Cuentas de demostración con contraseña privada.** `ana@yourtime.dev` y las demás se crean con la
+  contraseña `yourtime123`, conocida por cualquiera que lea el repositorio. En una API pública, cárgalas
+  con `SEED_PASSWORD` (queda en `infra/docker/.env`) y comparte esa contraseña solo con tus testers:
+  `docker compose -f infra/docker/docker-compose.yml run --rm -e SEED_PASSWORD=<la-tuya> --entrypoint seed backend`.
+  La pantalla de inicio de sesión no muestra credenciales.
 
 ## 2. Una base limpia, con tu cuenta, y el registro cerrado
 

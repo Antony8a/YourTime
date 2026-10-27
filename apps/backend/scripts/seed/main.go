@@ -21,7 +21,14 @@ import (
 	"github.com/yourtime/backend/internal/infrastructure/persistence/postgres"
 )
 
-const demoPassword = "yourtime123"
+// demoPassword is shared by every demo account. Set SEED_PASSWORD to something private
+// before seeding a server other people can reach: the default is public in this repository.
+var demoPassword = func() string {
+	if p := os.Getenv("SEED_PASSWORD"); p != "" {
+		return p
+	}
+	return "yourtime123"
+}()
 
 func main() {
 	if err := run(); err != nil {

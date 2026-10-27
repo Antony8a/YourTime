@@ -32,8 +32,8 @@ la API solo.
 
 ### Datos de demostración (opcional)
 
-Los datos de demostración usan contraseñas conocidas (`yourtime123`), así que **cualquiera que tenga
-la URL podría entrar como Ana**. Si el APK es solo para ti, mejor no los cargues y regístrate con tu
+Los datos de demostración usan por defecto una contraseña conocida (`yourtime123`; define
+`SEED_PASSWORD` para cambiarla), así que **cualquiera que tenga la URL podría entrar como Ana**. Si el APK es solo para ti, mejor no los cargues y regístrate con tu
 propia cuenta en la app. Si los quieres, desde tu PC (con Docker encendido):
 
 ```bash

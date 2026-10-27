@@ -42,7 +42,7 @@ un Android real.
    todo), flechas ‹ › o un calendario de rango. Muestra totales por moneda, un total convertido a la
    moneda de la cuenta y la lista de servicios.
 
-**Cuentas de demostración** (contraseña `yourtime123`): `ana@yourtime.dev` (COP, Medellín),
+**Cuentas de demostración** (contraseña `yourtime123`, o la de `SEED_PASSWORD` si la definiste al cargar los datos; con la API pública usa una privada): `ana@yourtime.dev` (COP, Medellín),
 `luis@yourtime.dev` (USD), `marta@yourtime.dev` (EUR), `carlos@yourtime.dev` (COP). La semilla trae 5
 tareas abiertas y 6 servicios ya finalizados, con reseñas, precios y fechas entre hace 4 y 71 días;
 Ana tiene 3 servicios hechos (en USD, EUR y COP) y 3 pedidos, para probar el balance.
