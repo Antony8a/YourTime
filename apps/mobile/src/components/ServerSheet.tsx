@@ -12,10 +12,14 @@ const shortUrl = (url: string) => url.replace(/^https?:\/\//, '');
 /**
  * Lets the person say where the YourTime server is. The installed app does not
  * have to be rebuilt when the computer running the server changes address.
+ * Builds that point at a public https address have nothing to change, so the
+ * link is hidden there: the sheet talks about a WiFi IP and only confuses.
  */
 export function ServerLink() {
   const [open, setOpen] = useState(false);
   const [current, setCurrent] = useState(getApiUrl());
+
+  if (getDefaultApiUrl().startsWith('https://')) return null;
 
   return (
     <>

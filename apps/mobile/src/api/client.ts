@@ -59,8 +59,8 @@ export async function checkApiUrl(url: string, timeoutMs = 6000): Promise<boolea
   }
 }
 
-/** Long enough for a sleeping free-tier server to wake up (about a minute). */
-const REQUEST_TIMEOUT_MS = 75_000;
+/** Long enough for a slow mobile connection, short enough not to leave a spinner for a minute. */
+const REQUEST_TIMEOUT_MS = 25_000;
 
 export class ApiError extends Error {
   constructor(
@@ -113,8 +113,7 @@ async function send<T>(
   token: string | null
 ): Promise<Envelope<T>> {
   let response: Response;
-  // A free host puts an idle server to sleep and takes about a minute to wake it,
-  // so wait that long, then say so instead of hanging forever.
+  // Give up after a while and say so instead of spinning forever when the server is off.
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
   try {
