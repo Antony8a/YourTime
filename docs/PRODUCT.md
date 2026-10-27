@@ -258,9 +258,12 @@ comisiones, nunca se retira.
   cambio 4.000: el precio son USD 12,50 y la comisión USD 1,25.
 - **Cuándo.** Postularse no cuesta, pero **exige que el saldo cubra la comisión** de esa oferta (se
   ve en la hoja de postulación, que se bloquea si no alcanza). El cobro ocurre **solo al ser
-  elegida**, dentro de la misma transacción que la elección: si el saldo ya no alcanza (porque lo
-  gastó en otra tarea), la elección no se hace y quien publicó recibe un aviso para elegir a otra
-  persona. Las tareas remotas pagan igual.
+  elegida**, dentro de la misma transacción que la elección. Puede pasar que, entre postularse y
+  ser elegida, la persona gaste su saldo en otra tarea: en ese caso la elección no se hace y
+  quien publicó ve en ese momento el mensaje "Esta persona ya no tiene saldo suficiente para que
+  la elijas. Elige a otra." Es solo la respuesta a su toque en "Elegir", no una notificación: a
+  quien publica nunca se le avisa de intentos de postularse sin saldo (esos simplemente no se
+  envían). Las tareas remotas pagan igual.
 - **Devolución.** La comisión se devuelve entera si el servicio **no llega a empezar**: renuncia de
   quien lo hace o cancelación de quien publicó (antes de iniciar el servicio). Un servicio iniciado
   conserva la comisión.

@@ -509,6 +509,8 @@ export const fr: Catalog = {
   'Moneda del monto (código de 3 letras)': 'Devise du montant (code à 3 lettres)',
   'Moneda: {currency} (la de tu cuenta, puedes cambiarla en tu perfil).':
     'Devise : {currency} (celle de votre compte ; vous pouvez la modifier dans votre profil).',
+  'Moneda: {currency} (la de tu cuenta, ya no se puede cambiar).':
+    'Devise : {currency} (celle de votre compte ; elle ne peut plus être modifiée).',
   'Moneda: {currency} (la tarea conserva la moneda con la que se publicó).':
     'Devise : {currency} (la tâche conserve la devise avec laquelle elle a été publiée).',
   Monto: 'Montant',

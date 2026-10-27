@@ -3,7 +3,7 @@ import { StyleSheet, Switch, View } from 'react-native';
 import type { BudgetType, Task, TaskInput } from '@yourtime/shared-types';
 import { formatDateTime, fromMinor, msg, parseAmount, t, toMinor } from '@yourtime/shared-utils';
 import { categoryName } from '@/i18n/categories';
-import { useCategories, useUpdateMe } from '@/api/hooks';
+import { useCategories, useUpdateMe, useWallet } from '@/api/hooks';
 import { ApiError } from '@/api/client';
 import { useFeedback } from '@/components/feedback/FeedbackProvider';
 import { Button, Card, Chip, Icon, Input, Segmented, Text, safeIcon } from '@/components/ui';
@@ -54,6 +54,7 @@ export function TaskForm({ task, submitLabel, loading, onSubmit, error }: TaskFo
 
   // A task keeps the currency it was published in; new ones use the account's.
   const currency = task?.budget.currency ?? user?.currency ?? 'USD';
+  const currencyLocked = useWallet().data?.established === true;
 
   const [categoryId, setCategoryId] = useState(task?.category.id ?? '');
   const [title, setTitle] = useState(task?.title ?? '');
@@ -219,9 +220,11 @@ export function TaskForm({ task, submitLabel, loading, onSubmit, error }: TaskFo
             ? t('Moneda: {currency} (la tarea conserva la moneda con la que se publicó).', {
                 currency,
               })
-            : t('Moneda: {currency} (la de tu cuenta, puedes cambiarla en tu perfil).', {
-                currency,
-              })}
+            : currencyLocked
+              ? t('Moneda: {currency} (la de tu cuenta, ya no se puede cambiar).', { currency })
+              : t('Moneda: {currency} (la de tu cuenta, puedes cambiarla en tu perfil).', {
+                  currency,
+                })}
         </Text>
       </View>
 

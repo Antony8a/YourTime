@@ -504,6 +504,8 @@ export const en: Catalog = {
   'Moneda del monto (código de 3 letras)': 'Currency of the amount (3-letter code)',
   'Moneda: {currency} (la de tu cuenta, puedes cambiarla en tu perfil).':
     'Currency: {currency} (your account’s; you can change it in your profile).',
+  'Moneda: {currency} (la de tu cuenta, ya no se puede cambiar).':
+    'Currency: {currency} (your account’s; it can no longer be changed).',
   'Moneda: {currency} (la tarea conserva la moneda con la que se publicó).':
     'Currency: {currency} (the task keeps the currency it was posted with).',
   Monto: 'Amount',
