@@ -32,6 +32,13 @@ Con Docker Desktop encendido, desde la raíz del repositorio:
   menos (la caché de Gradle y de pnpm se guarda en volúmenes de Docker).
 - Deja el archivo en `dist\YourTime.apk`.
 - Usa la IP de WiFi de este PC como servidor por defecto. Para otra: `-ApiUrl http://192.168.1.50:8080`.
+- Con `-Committed` compila **exactamente el último commit**, ignorando lo que tengas a medias en el
+  árbol de trabajo: es la forma de generar el APK que vas a compartir. Para uno que apunte a la API
+  pública: `.\scripts\build-apk.ps1 -Committed -ApiUrl https://tu-nombre.ts.net` (ver
+  [`ACCESO_REMOTO.md`](ACCESO_REMOTO.md)).
+- No lances dos compilaciones a la vez: comparten la caché de Gradle y la segunda falla con un error de
+  bloqueo de `journal-1`. Si Docker perdió su caché, la imagen vuelve a bajar el SDK de Android y la
+  primera compilación tarda otra vez 20-40 min.
 - Compila solo para **arm64-v8a** (casi todos los celulares de los últimos años, incluido el Motorola
   Edge 50 Pro). Para otras arquitecturas: `-Abis "arm64-v8a,armeabi-v7a,x86_64"`.
 
