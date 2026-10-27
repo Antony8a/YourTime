@@ -8,13 +8,19 @@ import {
 } from '@tanstack/react-query';
 import type {
   ActiveServices,
+  AdminOverview,
   Application,
   ApplyRequest,
   Balance,
   Category,
+  FeeQuote,
   LoginRequest,
+  NewPromotion,
   Page,
+  PlatformSettings,
+  Promotion,
   PublicProfile,
+  RedeemResult,
   RegisterRequest,
   Review,
   ReviewInput,
@@ -23,8 +29,11 @@ import type {
   TaskInput,
   TaskListParams,
   TaskStatus,
+  TopupResult,
   UpdateMeRequest,
   User,
+  Wallet,
+  WalletTransaction,
 } from '@yourtime/shared-types';
 import { rangeBounds, type DateRange, type Rates } from '@yourtime/shared-utils';
 import { useAuth } from '@/store/auth';
@@ -48,6 +57,10 @@ export const keys = {
   userReviews: (id: string) => ['reviews', id] as const,
   balance: (range: DateRange) => ['balance', range.from, range.to] as const,
   rates: ['rates'] as const,
+  wallet: ['wallet'] as const,
+  walletTransactions: ['wallet', 'transactions'] as const,
+  feeQuote: (taskId: string, price: number) => ['wallet', 'quote', taskId, price] as const,
+  admin: ['admin'] as const,
 };
 
 /** Anything that changes tasks or applications refreshes every list that shows them. */
@@ -60,6 +73,8 @@ function invalidateTaskData(qc: QueryClient, taskId?: string) {
   void qc.invalidateQueries({ queryKey: ['reviews'] });
   // Finishing a service moves money between the two people.
   void qc.invalidateQueries({ queryKey: ['balance'] });
+  // Being chosen charges the commission, and a service that falls through gives it back.
+  void qc.invalidateQueries({ queryKey: keys.wallet });
   if (taskId) void qc.invalidateQueries({ queryKey: keys.task(taskId) });
 }
 
@@ -319,5 +334,126 @@ export function useRates() {
     enabled: signedIn,
     staleTime: 60 * 60_000,
     retry: 1,
+  });
+}
+
+// ---- wallet ----------------------------------------------------------------
+
+/** The person's wallet: balance, commission and what they can do with it. */
+export function useWallet() {
+  const signedIn = useAuth((s) => s.status === 'signedIn');
+  return useQuery({
+    queryKey: keys.wallet,
+    queryFn: () => api.get<Wallet>('/me/wallet'),
+    enabled: signedIn,
+    staleTime: 10_000,
+  });
+}
+
+export function useWalletTransactions() {
+  return useInfiniteQuery({
+    queryKey: keys.walletTransactions,
+    initialPageParam: 0,
+    queryFn: ({ pageParam }) =>
+      api.page<WalletTransaction>('/me/wallet/transactions', {
+        limit: PAGE_SIZE,
+        offset: pageParam,
+      }),
+    getNextPageParam: (last) => (last.meta.has_more ? last.meta.offset + PAGE_SIZE : undefined),
+  });
+}
+
+/** Whatever changes the wallet refreshes the balance and its history (both live under keys.wallet). */
+function useRefreshWallet() {
+  const qc = useQueryClient();
+  return () => {
+    void qc.invalidateQueries({ queryKey: keys.wallet });
+  };
+}
+
+export function useTestTopup() {
+  const refresh = useRefreshWallet();
+  return useMutation({
+    mutationFn: (amountMinor: number) =>
+      api.post<TopupResult>('/me/wallet/test-topup', { amount_minor: amountMinor }),
+    onSuccess: refresh,
+  });
+}
+
+export function useRedeemCode() {
+  const refresh = useRefreshWallet();
+  return useMutation({
+    mutationFn: (code: string) => api.post<RedeemResult>('/me/wallet/redeem', { code }),
+    onSuccess: refresh,
+  });
+}
+
+/**
+ * What it would cost in commission to be chosen for a task at this price, and whether
+ * the wallet covers it. Asked again when the price changes.
+ */
+export function useFeeQuote(taskId: string, priceMinor: number | null, enabled = true) {
+  return useQuery({
+    queryKey: keys.feeQuote(taskId, priceMinor ?? 0),
+    queryFn: () => api.get<FeeQuote>(`/tasks/${taskId}/fee-quote`, { price_minor: priceMinor }),
+    enabled: enabled && priceMinor != null && priceMinor > 0,
+    placeholderData: keepPreviousData,
+    staleTime: 5_000,
+  });
+}
+
+// ---- administrator ---------------------------------------------------------
+
+export function useAdminOverview(enabled: boolean) {
+  return useQuery({
+    queryKey: [...keys.admin, 'overview'],
+    queryFn: () => api.get<AdminOverview>('/admin/overview'),
+    enabled,
+  });
+}
+
+export function useUpdateSettings() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (body: Omit<PlatformSettings, 'updated_at'>) =>
+      api.put<PlatformSettings>('/admin/settings', body),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: keys.admin });
+      void qc.invalidateQueries({ queryKey: keys.wallet });
+    },
+  });
+}
+
+export function useAdminPromotions(enabled: boolean) {
+  return useQuery({
+    queryKey: [...keys.admin, 'promotions'],
+    queryFn: () => api.get<Promotion[]>('/admin/promotions'),
+    enabled,
+  });
+}
+
+export function useCreatePromotion() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (body: NewPromotion) => api.post<Promotion>('/admin/promotions', body),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: keys.admin }),
+  });
+}
+
+export function useSetPromotionActive() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, active }: { id: string; active: boolean }) =>
+      api.patch<Promotion>(`/admin/promotions/${id}`, { active }),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: keys.admin }),
+  });
+}
+
+export function useManualCredit() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (body: { email: string; amount_minor: number; currency: string; note?: string }) =>
+      api.post<TopupResult>('/admin/credit', body),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: keys.admin }),
   });
 }

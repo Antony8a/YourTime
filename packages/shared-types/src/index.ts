@@ -371,3 +371,127 @@ export interface Balance {
   /** Money paid for services the person requested. */
   spent: BalanceSide;
 }
+
+// ---- wallet ----------------------------------------------------------------
+
+/**
+ * The prepaid credit people spend to take on work. Its currency is the account's at
+ * the moment it is first credited, and from then on neither can change.
+ */
+export interface Wallet {
+  currency: string;
+  balance_minor: number;
+  /** True once the wallet has been credited; the currency is then fixed. */
+  established: boolean;
+  /** The platform commission, in basis points of the agreed price (1000 = 10 %). */
+  fee_bps: number;
+  /** The share of the commission waived for this person right now, in basis points. */
+  discount_bps: number;
+  test_topups_enabled: boolean;
+  /** The largest test top-up, in the wallet currency. */
+  test_topup_max_minor: number;
+  /** Top-up amounts offered, in the wallet currency. */
+  suggested_topups_minor: number[];
+  is_admin: boolean;
+}
+
+export type WalletTransactionKind =
+  | 'topup_test'
+  | 'topup_manual'
+  | 'topup_bonus'
+  | 'promo_credit'
+  | 'signup_credit'
+  | 'fee'
+  | 'fee_refund';
+
+export interface WalletTransaction {
+  id: string;
+  kind: WalletTransactionKind;
+  /** Signed: credits are positive, the commission negative. */
+  amount_minor: number;
+  balance_after_minor: number;
+  currency: string;
+  task_id: string | null;
+  task_title: string | null;
+  note: string | null;
+  created_at: string;
+}
+
+/** What taking a task would cost in commission, and whether the wallet covers it. */
+export interface FeeQuote {
+  fee_minor: number;
+  currency: string;
+  balance_minor: number;
+  enough: boolean;
+  established: boolean;
+  fee_bps: number;
+  discount_bps: number;
+}
+
+export interface TopupResult {
+  currency: string;
+  balance_minor: number;
+  bonus_minor: number;
+}
+
+export interface RedeemResult {
+  name: string;
+  kind: PromotionKind;
+  credited_minor: number;
+  currency: string;
+  balance_minor: number;
+  discount_bps: number;
+}
+
+export type PromotionKind = 'topup_bonus' | 'fee_discount' | 'credit_grant';
+
+// ---- administrator ---------------------------------------------------------
+
+export interface PlatformSettings {
+  fee_bps: number;
+  test_topups_enabled: boolean;
+  /** Amounts below are in USD minor units, converted to each person's currency. */
+  test_topup_max_usd_minor: number;
+  signup_credit_usd_minor: number;
+  updated_at: string;
+}
+
+export interface FeeTotals {
+  currency: string;
+  /** Commissions charged minus those refunded. */
+  net_fees_minor: number;
+  /** Credit still sitting in wallets. */
+  outstanding_minor: number;
+  wallets: number;
+}
+
+export interface AdminOverview {
+  settings: PlatformSettings;
+  totals: FeeTotals[];
+}
+
+export interface Promotion {
+  id: string;
+  name: string;
+  code: string | null;
+  kind: PromotionKind;
+  value_bps: number | null;
+  amount_usd_minor: number | null;
+  starts_at: string | null;
+  ends_at: string | null;
+  active: boolean;
+  max_redemptions: number | null;
+  redemptions_count: number;
+  created_at: string;
+}
+
+export interface NewPromotion {
+  name: string;
+  code?: string;
+  kind: PromotionKind;
+  value_bps?: number;
+  amount_usd_minor?: number;
+  starts_at?: string;
+  ends_at?: string;
+  max_redemptions?: number;
+}

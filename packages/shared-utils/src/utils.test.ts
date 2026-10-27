@@ -1,5 +1,12 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { currencyDecimals, formatBudget, fromMinor, parseAmount, toMinor } from './currency';
+import {
+  currencyDecimals,
+  formatBudget,
+  formatPercent,
+  fromMinor,
+  parseAmount,
+  toMinor,
+} from './currency';
 import { formatDistance } from './distance';
 import { formatElapsed, timeAgo } from './time';
 
@@ -96,5 +103,15 @@ describe('formatElapsed', () => {
     expect(formatElapsed(65_000)).toBe('01:05');
     expect(formatElapsed(3_729_000)).toBe('1:02:09');
     expect(formatElapsed(-5000)).toBe('00:00');
+  });
+});
+
+describe('formatPercent', () => {
+  it('shows basis points as a percentage, in the language', () => {
+    expect(formatPercent(1000, 'en')).toBe('10%');
+    expect(formatPercent(250, 'en')).toBe('2.5%');
+    expect(formatPercent(0, 'en')).toBe('0%');
+    expect(formatPercent(10000, 'en')).toBe('100%');
+    expect(formatPercent(1000, 'es').replace(/\s/g, '')).toBe('10%');
   });
 });

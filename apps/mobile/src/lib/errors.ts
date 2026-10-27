@@ -51,6 +51,25 @@ const BY_CODE: Record<string, string> = {
     'Esta persona está haciendo otro servicio ahora. Elige a otra o espera a que termine.'
   ),
   route_not_started: msg('Primero inicia la ruta.'),
+  // wallet
+  insufficient_balance: msg('Tu saldo no alcanza para cubrir la comisión. Recarga tu billetera.'),
+  applicant_insufficient_balance: msg(
+    'Esta persona ya no tiene saldo suficiente para que la elijas. Elige a otra.'
+  ),
+  invalid_amount: msg('El monto debe ser mayor a cero.'),
+  amount_too_large: msg('Ese monto es más grande de lo permitido.'),
+  test_topups_disabled: msg('Las recargas de prueba están desactivadas.'),
+  promo_code_not_found: msg('Ese código no existe.'),
+  promo_code_unavailable: msg('Ese código venció, se agotó o ya no está activo.'),
+  promo_already_redeemed: msg('Ya canjeaste ese código.'),
+  promo_code_taken: msg('Ya hay otra promoción con ese código.'),
+  promotion_not_found: msg('Esa promoción ya no existe.'),
+  invalid_promotion: msg('Revisa la promoción: faltan datos o no son válidos.'),
+  invalid_settings: msg('Revisa la configuración: hay valores fuera de rango.'),
+  not_admin: msg('Solo quien administra la app puede hacer esto.'),
+  currency_locked: msg('Tu moneda quedó fija porque ya tienes una billetera.'),
+  currency_changed: msg('Tu moneda cambió mientras tanto. Inténtalo de nuevo.'),
+  rates_unavailable: msg('No hay tipos de cambio ahora mismo. Inténtalo en un momento.'),
   // reviews
   review_not_found: msg('Esa reseña ya no existe.'),
   not_task_participant: msg('Solo quien publicó la tarea y la persona elegida pueden calificar.'),

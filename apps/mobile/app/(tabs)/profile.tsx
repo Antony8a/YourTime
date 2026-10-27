@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
-import { LOCALES, SUPPORTED_CURRENCIES, t, tn } from '@yourtime/shared-utils';
+import { LOCALES, SUPPORTED_CURRENCIES, formatMoney, t, tn } from '@yourtime/shared-utils';
 import { ApiError } from '@/api/client';
-import { useUpdateMe } from '@/api/hooks';
+import { useUpdateMe, useWallet } from '@/api/hooks';
 import { useFeedback } from '@/components/feedback/FeedbackProvider';
 import { CurrencyPicker } from '@/components/profile/CurrencyPicker';
 import { LanguagePicker } from '@/components/profile/LanguagePicker';
@@ -35,6 +35,7 @@ export default function ProfileScreen() {
   const user = useAuth((s) => s.user);
   const signOut = useAuth((s) => s.signOut);
   const updateMe = useUpdateMe();
+  const wallet = useWallet();
   const { locate, locating } = useDeviceLocation();
 
   const [sheet, setSheet] = useState<'currency' | 'language' | 'radius' | 'edit' | null>(null);
@@ -108,7 +109,13 @@ export default function ProfileScreen() {
           icon="cash-outline"
           title={t('Moneda')}
           value={`${user.currency}${currencyName ? ` · ${currencyName}` : ''}`}
-          onPress={() => setSheet('currency')}
+          // Once the wallet has been credited the currency is fixed for good.
+          action={wallet.data?.established ? t('Fija') : undefined}
+          onPress={() =>
+            wallet.data?.established
+              ? toast(t('Tu moneda quedó fija porque ya tienes una billetera.'), 'error')
+              : setSheet('currency')
+          }
         />
         <Divider />
         <Row
@@ -157,6 +164,30 @@ export default function ProfileScreen() {
           onPress={() => router.push({ pathname: '/user/[id]', params: { id: user.id } })}
         />
         <Divider />
+        <Row
+          icon="card-outline"
+          title={t('Billetera')}
+          value={
+            wallet.data
+              ? t('Saldo: {amount}', {
+                  amount: formatMoney(wallet.data.balance_minor, wallet.data.currency),
+                })
+              : t('Saldo y recargas')
+          }
+          onPress={() => router.push('/wallet')}
+        />
+        <Divider />
+        {wallet.data?.is_admin ? (
+          <>
+            <Row
+              icon="shield-checkmark-outline"
+              title={t('Administración')}
+              value={t('Comisión, promociones y recargas')}
+              onPress={() => router.push('/admin')}
+            />
+            <Divider />
+          </>
+        ) : null}
         <Row
           icon="wallet-outline"
           title={t('Mi balance')}

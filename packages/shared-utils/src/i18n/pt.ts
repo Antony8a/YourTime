@@ -18,6 +18,7 @@ export const pt: Catalog = {
   '¿Para cuándo?': 'Para quando?',
   '¿Renunciar a este servicio?': 'Desistir deste serviço?',
   '¿Retirar tu postulación?': 'Retirar sua candidatura?',
+  '¿Tienes un código?': 'Você tem um código?',
   '¿Ya tienes cuenta?': 'Já tem uma conta?',
   '{count} año': '{count} ano',
   '{count} años': '{count} anos',
@@ -50,6 +51,7 @@ export const pt: Catalog = {
   '{day} de {month} de {year}': '{day} de {month} de {year}',
   '{hours} h': '{hours} h',
   '{hours} h {minutes} min': '{hours} h {minutes} min',
+  '{kind}: {amount}': '{kind}: {amount}',
   '{km} km': '{km} km',
   '{minutes} min': '{minutes} min',
   '{name} · te postulaste {when}': '{name} · você se candidatou {when}',
@@ -59,8 +61,14 @@ export const pt: Catalog = {
   '{name} se prepara': '{name} está se preparando',
   '{name} va en camino': '{name} está a caminho',
   '{name} verá que el servicio comenzó.': '{name} verá que o serviço começou.',
+  '{percent} del precio, con {discount} de descuento. No pagas nada si no te eligen.':
+    '{percent} do preço, com {discount} de desconto. Você não paga nada se não escolherem você.',
+  '{percent} del precio. No pagas nada si no te eligen.':
+    '{percent} do preço. Você não paga nada se não escolherem você.',
   '{rating} de 5 estrellas, {value}': '{rating} de 5 estrelas, {value}',
   '{role}: {title}. {status}. Abrir servicio': '{role}: {title}. {status}. Abrir serviço',
+  '{used} de {max} usos': '{used} de {max} usos',
+  '{used} usos': '{used} usos',
   '30 días': '30 dias',
   '7 días': '7 dias',
   'A {distance}': 'A {distance}',
@@ -74,11 +82,17 @@ export const pt: Catalog = {
   Aceptada: 'Aceita',
   'Acordarán {price}. Las demás postulaciones se descartarán y compartirán sus datos de contacto.':
     'Vocês combinarão {price}. As outras candidaturas serão descartadas e vocês compartilharão os dados de contato.',
+  'Acreditado. Nuevo saldo: {amount}.': 'Creditado. Novo saldo: {amount}.',
+  Acreditar: 'Creditar',
+  Activa: 'Ativa',
   'Activa el permiso de ubicación para que {name} te vea en el mapa.':
     'Ative a permissão de localização para que {name} veja você no mapa.',
+  Activadas: 'Ativadas',
+  Activar: 'Ativar',
   Actividad: 'Atividade',
   Actualizar: 'Atualizar',
   'Actualizar con mi ubicación': 'Atualizar com minha localização',
+  Administración: 'Administração',
   'Afinan la lista; nunca te impiden postularte.':
     'Refinam a lista; nunca impedem você de se candidatar.',
   ago: 'ago',
@@ -87,6 +101,7 @@ export const pt: Catalog = {
     'Agradeça ou esclareça o que for preciso. Será pública e não pode ser editada.',
   'Ahora elige el último día, o aplica solo este': 'Agora escolha o último dia, ou aplique só este',
   'ahora mismo': 'agora mesmo',
+  'Ahora mismo no se cobra comisión.': 'No momento não há cobrança de comissão.',
   'Ahora no': 'Agora não',
   'Al menos ≈': 'Pelo menos ≈',
   'Algo salió mal. Inténtalo de nuevo.': 'Algo deu errado. Tente novamente.',
@@ -99,6 +114,9 @@ export const pt: Catalog = {
     'Ninguém se candidatou ainda. Quando chegar uma candidatura, você a verá aqui.',
   'Aún no ha realizado servicios.': 'Ainda não realizou serviços.',
   'Aún no has publicado tareas': 'Você ainda não publicou tarefas',
+  'Aún no hay billeteras.': 'Ainda não há carteiras.',
+  'Aún no hay movimientos.': 'Ainda não há movimentações.',
+  'Aún no hay promociones.': 'Ainda não há promoções.',
   'Aún no te has postulado': 'Você ainda não se candidatou',
   'Aún no tiene calificaciones.': 'Ainda não tem avaliações.',
   'Aún sin calificaciones': 'Ainda sem avaliações',
@@ -108,8 +126,11 @@ export const pt: Catalog = {
   'BALANCE NETO': 'SALDO LÍQUIDO',
   Balboa: 'Balboa',
   'Bienvenido de vuelta': 'Bem-vindo de volta',
+  Billetera: 'Carteira',
   'Bolívar venezolano': 'Bolívar venezuelano',
   Boliviano: 'Boliviano',
+  Bono: 'Bônus',
+  'Bono por recarga': 'Bônus de recarga',
   'Borrar búsqueda': 'Limpar busca',
   Buena: 'Boa',
   'Busca tareas: plomería, clases, mudanza…': 'Busque tarefas: encanamento, aulas, mudança…',
@@ -132,18 +153,33 @@ export const pt: Catalog = {
   Cancelar: 'Cancelar',
   'Cancelar servicio': 'Cancelar serviço',
   'Cancelar tarea': 'Cancelar tarefa',
+  'Canjear código': 'Resgatar código',
   Categoría: 'Categoria',
   'Cerca de mí · {radius} km': 'Perto de mim · {radius} km',
   Cerrar: 'Fechar',
   'Cerrar sesión': 'Sair',
   'Chelín keniano': 'Xelim queniano',
   'Clases y tutorías': 'Aulas e tutoria',
+  Código: 'Código',
+  'Código (opcional)': 'Código (opcional)',
+  'Código aplicado: {amount} a tu billetera.': 'Código aplicado: {amount} na sua carteira.',
+  'Código aplicado: {percent} de descuento en la comisión.':
+    'Código aplicado: {percent} de desconto na comissão.',
+  'Código promocional': 'Código promocional',
   'Colón costarricense': 'Colón costarriquenho',
   'Comentario (opcional)': 'Comentário (opcional)',
+  Comisión: 'Comissão',
+  'Comisión (% del precio acordado)': 'Comissão (% do preço combinado)',
+  'Comisión si te eligen: {fee}': 'Comissão se escolherem você: {fee}',
+  'Comisión y recargas': 'Comissão e recargas',
+  'Comisión, promociones y recargas': 'Comissão, promoções e recargas',
+  'Comisiones: {amount}': 'Comissões: {amount}',
+  'Cómo funciona': 'Como funciona',
   'Cómo trabaja': 'Como trabalha',
   'Compartiendo tu ubicación con {name} mientras esta pantalla esté abierta.':
     'Compartilhando sua localização com {name} enquanto esta tela estiver aberta.',
   'con {name}': 'com {name}',
+  'Configuración guardada.': 'Configuração salva.',
   Configurar: 'Configurar',
   Confirmar: 'Confirmar',
   'Confirmar finalización': 'Confirmar conclusão',
@@ -153,11 +189,18 @@ export const pt: Catalog = {
   'Corona danesa': 'Coroa dinamarquesa',
   'Corona noruega': 'Coroa norueguesa',
   'Corona sueca': 'Coroa sueca',
+  'Correo de la persona': 'E-mail da pessoa',
   'Correo electrónico': 'E-mail',
   'Correo o contraseña incorrectos.': 'E-mail ou senha incorretos.',
   'Crea tu cuenta': 'Crie sua conta',
   'Crea una contraseña': 'Crie uma senha',
   'Crear cuenta': 'Criar conta',
+  'Crear promoción': 'Criar promoção',
+  Crédito: 'Crédito',
+  'Crédito con código': 'Crédito com código',
+  'Crédito de bienvenida': 'Crédito de boas-vindas',
+  'Crédito de bienvenida (USD)': 'Crédito de boas-vindas (USD)',
+  'Crédito promocional': 'Crédito promocional',
   'Cuando alguien te califique al finalizar una tarea, lo verás aquí.':
     'Quando alguém avaliar você ao finalizar uma tarefa, você verá aqui.',
   'Cuando publiques una, aparecerá aquí con sus postulaciones.':
@@ -186,14 +229,18 @@ export const pt: Catalog = {
   'Demasiados intentos. Espera un momento e inténtalo otra vez.':
     'Muitas tentativas. Aguarde um momento e tente novamente.',
   'dentro de {text}': 'em {text}',
+  Desactivadas: 'Desativadas',
   Descartar: 'Descartar',
   'Describe la tarea en pocas palabras (mínimo 4 letras).':
     'Descreva a tarefa em poucas palavras (mínimo de 4 letras).',
   Descripción: 'Descrição',
+  Descuento: 'Desconto',
+  'Descuento de comisión': 'Desconto na comissão',
   Desde: 'De',
   'Desde (por hora)': 'De (por hora)',
   'Desde {date}': 'De {date}',
   'Después podrán calificarse mutuamente.': 'Depois vocês poderão se avaliar mutuamente.',
+  'Devolución de comisión': 'Reembolso da comissão',
   dic: 'dez',
   diciembre: 'dezembro',
   Dirección: 'Endereço',
@@ -223,11 +270,14 @@ export const pt: Catalog = {
   'El mensaje es demasiado largo (máximo 2000 caracteres).':
     'A mensagem é muito longa (máximo de 2000 caracteres).',
   'el mes pasado': 'mês passado',
+  'El monto debe ser mayor a cero.': 'O valor deve ser maior que zero.',
   'El nombre de la ciudad es demasiado largo.': 'O nome da cidade é muito longo.',
   'El precio debe ser mayor a cero.': 'O preço deve ser maior que zero.',
   'el próximo año': 'próximo ano',
   'el próximo mes': 'próximo mês',
   'El radio debe estar entre 1 y 20000 km.': 'O raio deve estar entre 1 e 20000 km.',
+  'El saldo no se retira: se gasta en nuevas tareas.':
+    'O saldo não pode ser sacado: é gasto em novas tarefas.',
   'El servidor tarda en responder; puede estar despertando. Inténtalo de nuevo en un momento.':
     'O servidor está demorando para responder; pode estar acordando. Tente novamente em um momento.',
   'El título es obligatorio (máximo 200 caracteres).':
@@ -263,7 +313,9 @@ export const pt: Catalog = {
     'Essa ação não está disponível com o estado atual da tarefa.',
   'Esa moneda no está disponible.': 'Essa moeda não está disponível.',
   'Esa postulación ya no existe.': 'Essa candidatura não existe mais.',
+  'Esa promoción ya no existe.': 'Essa promoção não existe mais.',
   'Esa reseña ya no existe.': 'Essa resenha não existe mais.',
+  'Escribe el monto en USD.': 'Digite o valor em USD.',
   'Escribe el precio que propones.': 'Digite o preço que você propõe.',
   'Escribe el teléfono con código de país, por ejemplo +573001234567.':
     'Digite o telefone com código do país, por exemplo +573001234567.',
@@ -274,13 +326,18 @@ export const pt: Catalog = {
   'Escribe un correo válido.': 'Digite um e-mail válido.',
   'Escribe un enlace válido.': 'Digite um link válido.',
   'Escribe un monto válido.': 'Digite um valor válido.',
+  'Escribe un porcentaje entre 1 y 100.': 'Digite uma porcentagem entre 1 e 100.',
   'Escribe una dirección válida, por ejemplo 192.168.1.109':
     'Digite um endereço válido, por exemplo 192.168.1.109',
   Escribir: 'Escrever',
   'Escribir a {full_name}': 'Escrever para {full_name}',
+  'Ese código no existe.': 'Esse código não existe.',
+  'Ese código venció, se agotó o ya no está activo.':
+    'Esse código venceu, esgotou ou não está mais ativo.',
   'Ese correo ya tiene una cuenta. Prueba iniciar sesión.':
     'Esse e-mail já tem uma conta. Tente entrar.',
   'Ese idioma no está disponible.': 'Esse idioma não está disponível.',
+  'Ese monto es más grande de lo permitido.': 'Esse valor é maior que o permitido.',
   'Esloti polaco': 'Zloty polonês',
   'Esta acción ya no es posible. Actualiza e inténtalo de nuevo.':
     'Esta ação não é mais possível. Atualize e tente novamente.',
@@ -288,6 +345,8 @@ export const pt: Catalog = {
     'Está fazendo outro serviço agora. Você poderá escolher quando terminar.',
   'Esta persona está haciendo otro servicio ahora. Elige a otra o espera a que termine.':
     'Esta pessoa está fazendo outro serviço agora. Escolha outra ou espere ela terminar.',
+  'Esta persona ya no tiene saldo suficiente para que la elijas. Elige a otra.':
+    'Esta pessoa não tem mais saldo suficiente para você escolhê-la. Escolha outra.',
   'Esta postulación ya fue resuelta.': 'Esta candidatura já foi resolvida.',
   'Esta reseña ya tiene una respuesta.': 'Esta resenha já tem uma resposta.',
   'Esta tarea queda a {distance}, fuera de tu radio preferido. Puedes postularte igual; confirma que te sirve.':
@@ -315,6 +374,7 @@ export const pt: Catalog = {
   'Explorar tareas': 'Explorar tarefas',
   feb: 'fev',
   febrero: 'fevereiro',
+  Fija: 'Fixa',
   Filtros: 'Filtros',
   'Filtros · {activeFilters}': 'Filtros · {activeFilters}',
   'Finaliza cuando el trabajo esté hecho.': 'Finalize quando o trabalho estiver feito.',
@@ -345,6 +405,8 @@ export const pt: Catalog = {
   'Hogar y reparaciones': 'Casa e reparos',
   'Hola, {name}': 'Olá, {name}',
   Hoy: 'Hoje',
+  'Hoy: {percent}. Aplica a las tareas que se elijan desde ahora.':
+    'Hoje: {percent}. Vale para as tarefas escolhidas a partir de agora.',
   Idioma: 'Idioma',
   'Idioma {name}. Cambiar': 'Idioma {name}. Alterar',
   'Idioma del dispositivo': 'Idioma do dispositivo',
@@ -382,6 +444,9 @@ export const pt: Catalog = {
   'La tarea volverá a estar disponible y la persona podrá elegir a alguien más.':
     'A tarefa voltará a ficar disponível e a pessoa poderá escolher outra.',
   'La ubicación no es válida.': 'A localização não é válida.',
+  'Las recargas de prueba están desactivadas.': 'As recargas de teste estão desativadas.',
+  'Las recargas de prueba están desactivadas. Pídele una recarga a quien administra la app.':
+    'As recargas de teste estão desativadas. Peça uma recarga a quem administra o app.',
   'Las tareas remotas siempre se muestran.': 'As tarefas remotas sempre são exibidas.',
   Lempira: 'Lempira',
   'Libra egipcia': 'Libra egípcia',
@@ -396,9 +461,11 @@ export const pt: Catalog = {
   'Llegando al destino': 'Chegando ao destino',
   'Lo que enviaste es demasiado grande.': 'O que você enviou é muito grande.',
   'Lo que ganaste y lo que gastaste': 'O que você ganhou e o que gastou',
+  'Lo que ha entrado': 'O que entrou',
   'Longitud no válida.': 'Comprimento inválido.',
   'Los textos que escriben otras personas, como las tareas, no se traducen.':
     'Os textos escritos por outras pessoas, como as tarefas, não são traduzidos.',
+  'Los usos deben ser un número entero.': 'Os usos devem ser um número inteiro.',
   M: 'T',
   Mala: 'Ruim',
   Mandados: 'Recados',
@@ -411,6 +478,8 @@ export const pt: Catalog = {
   'Más cercanas': 'Mais próximas',
   'Más recientes': 'Mais recentes',
   Mascotas: 'Animais de estimação',
+  'Máximo por recarga de prueba (USD)': 'Máximo por recarga de teste (USD)',
+  'Máximo por recarga: {max}': 'Máximo por recarga: {max}',
   may: 'mai',
   mayo: 'maio',
   'menos de 1 min': 'menos de 1 min',
@@ -431,13 +500,17 @@ export const pt: Catalog = {
   'Moneda {currency}. Cambiar': 'Moeda {currency}. Alterar',
   'Moneda cambiada a {code}.': 'Moeda alterada para {code}.',
   'Moneda de tu cuenta': 'Moeda da sua conta',
+  'Moneda del monto (código de 3 letras)': 'Moeda do valor (código de 3 letras)',
   'Moneda: {currency} (la de tu cuenta, puedes cambiarla en tu perfil).':
     'Moeda: {currency} (a da sua conta; você pode alterá-la no seu perfil).',
   'Moneda: {currency} (la tarea conserva la moneda con la que se publicó).':
     'Moeda: {currency} (a tarefa mantém a moeda com que foi publicada).',
+  Monto: 'Valor',
+  'Monto (USD)': 'Valor (USD)',
   'Mostramos los {count} más recientes. Los totales incluyen todos los servicios del periodo.':
     'Mostramos os {count} mais recentes. Os totais incluem todos os serviços do período.',
   Mostrar: 'Mostrar',
+  Movimientos: 'Movimentações',
   'Mudanzas y transporte': 'Mudanças e transporte',
   'Muy buena': 'Muito boa',
   Naira: 'Naira',
@@ -455,34 +528,47 @@ export const pt: Catalog = {
   'No hay servicios solicitados en este periodo': 'Não há serviços solicitados neste período',
   'No hay tareas con estos filtros': 'Não há tarefas com esses filtros',
   'No hay tareas en este estado': 'Não há tarefas neste estado',
+  'No hay tipos de cambio ahora mismo. Inténtalo en un momento.':
+    'Não há taxas de câmbio no momento. Tente novamente em instantes.',
   'No pude conectar. Revisa que el celular esté en el mismo WiFi que el computador y que la API esté encendida.':
     'Não consegui conectar. Verifique se o celular está no mesmo Wi-Fi que o computador e se a API está ligada.',
   'No pudimos abrir el servicio': 'Não conseguimos abrir o serviço',
+  'No pudimos acreditar.': 'Não conseguimos creditar.',
+  'No pudimos aplicar el código.': 'Não conseguimos aplicar o código.',
   'No pudimos cargar el perfil': 'Não conseguimos carregar o perfil',
   'No pudimos cargar la tarea': 'Não conseguimos carregar a tarefa',
   'No pudimos cargar las postulaciones.': 'Não conseguimos carregar as candidaturas.',
   'No pudimos cargar las tareas': 'Não conseguimos carregar as tarefas',
   'No pudimos cargar tu balance': 'Não conseguimos carregar seu saldo',
+  'No pudimos cargar tu billetera': 'Não conseguimos carregar sua carteira',
   'No pudimos cargar tus postulaciones': 'Não conseguimos carregar suas candidaturas',
   'No pudimos cargar tus tareas': 'Não conseguimos carregar suas tarefas',
   'No pudimos completar la acción.': 'Não conseguimos concluir a ação.',
+  'No pudimos crear la promoción.': 'Não conseguimos criar a promoção.',
   'No pudimos crear tu cuenta.': 'Não conseguimos criar sua conta.',
   'No pudimos enviar tu postulación.': 'Não conseguimos enviar sua candidatura.',
   'No pudimos enviar tu reseña.': 'Não conseguimos enviar sua resenha.',
   'No pudimos guardar el cambio.': 'Não conseguimos salvar a alteração.',
   'No pudimos guardar tu ubicación.': 'Não conseguimos salvar sua localização.',
+  'No pudimos guardar.': 'Não conseguimos salvar.',
   'No pudimos iniciar sesión.': 'Não conseguimos fazer seu login.',
   'No pudimos obtener tu ubicación.': 'Não conseguimos obter sua localização.',
   'No pudimos obtener tu ubicación. Revisa que el GPS esté activo.':
     'Não conseguimos obter sua localização. Verifique se o GPS está ativo.',
   'No pudimos publicar tu respuesta.': 'Não conseguimos publicar sua resposta.',
+  'No pudimos recargar.': 'Não conseguimos recarregar.',
   'No puedes postularte a tu propia tarea.': 'Você não pode se candidatar à sua própria tarefa.',
   'No seleccionada': 'Não selecionada',
+  'No tienes acceso a esta sección': 'Você não tem acesso a esta seção',
   'No tienes permiso para hacer esto.': 'Você não tem permissão para fazer isso.',
+  Nombre: 'Nome',
   'Nombre completo': 'Nome completo',
   'Nombre, teléfono y presentación': 'Nome, telefone e apresentação',
+  'Nota (opcional)': 'Nota (opcional)',
   nov: 'nov',
   noviembre: 'novembro',
+  Nueva: 'Nova',
+  'Nueva promoción': 'Nova promoção',
   'Nuevo dólar taiwanés': 'Novo dólar taiwanês',
   'Nuevo séquel': 'Novo shekel',
   oct: 'out',
@@ -491,9 +577,16 @@ export const pt: Catalog = {
   'Ocupado ahora': 'Ocupado agora',
   'Opción no válida.': 'Opção inválida.',
   'Ordenar por': 'Ordenar por',
+  'Otro monto ({currency})': 'Outro valor ({currency})',
   Otros: 'Outros',
   'para {name}': 'para {name}',
+  'Para cuando alguien te pagó por fuera. El monto se convierte a la moneda de su billetera.':
+    'Para quando alguém pagou a você por fora. O valor é convertido para a moeda da carteira da pessoa.',
+  'Para postularte necesitas saldo. Si te eligen, se descuenta {percent} del precio acordado. Si no te eligen, no pagas nada.':
+    'Para se candidatar você precisa de saldo. Se escolherem você, são descontados {percent} do preço combinado. Se não escolherem, você não paga nada.',
   'pasado mañana': 'depois de amanhã',
+  Pausada: 'Pausada',
+  Pausar: 'Pausar',
   Pendiente: 'Pendente',
   Perfil: 'Perfil',
   'Perfil actualizado.': 'Perfil atualizado.',
@@ -513,8 +606,10 @@ export const pt: Catalog = {
     'Você poderá avaliar quando a tarefa for finalizada.',
   'Podrás volver a postularte mientras la tarea siga abierta.':
     'Você poderá se candidatar novamente enquanto a tarefa estiver aberta.',
+  'Ponle un nombre a la promoción.': 'Dê um nome à promoção.',
   'Por hora': 'Por hora',
   'Por: {title}': 'Por: {title}',
+  Porcentaje: 'Porcentagem',
   'Postulación a {title}': 'Candidatura a {title}',
   'Postulación enviada. Quien publicó la tarea decidirá.':
     'Candidatura enviada. Quem publicou a tarefa decidirá.',
@@ -531,6 +626,8 @@ export const pt: Catalog = {
   'Primero inicia la ruta.': 'Primeiro inicie a rota.',
   'Probar y guardar': 'Testar e salvar',
   'Progreso: {step}, paso {current} de {total}': 'Progresso: {step}, etapa {current} de {total}',
+  'Promoción creada.': 'Promoção criada.',
+  Promociones: 'Promoções',
   Propone: 'Propõe',
   'Prueba con otra búsqueda, otra categoría o amplía la distancia.':
     'Tente outra busca, outra categoria ou amplie a distância.',
@@ -561,6 +658,20 @@ export const pt: Catalog = {
   'Radio quitado.': 'Raio removido.',
   'Rand sudafricano': 'Rand sul-africano',
   'Real brasileño': 'Real brasileiro',
+  'Rebaja la comisión. Con código, solo a quien lo canjee; sin código, a todos.':
+    'Reduz a comissão. Com código, só para quem o resgatar; sem código, para todos.',
+  Recarga: 'Recarga',
+  'Recarga de prueba': 'Recarga de teste',
+  'Recarga lista.': 'Recarga feita.',
+  'Recarga lista. Más un bono de {bonus}.': 'Recarga feita. Mais um bônus de {bonus}.',
+  'Recarga manual': 'Recarga manual',
+  Recargar: 'Recarregar',
+  'Recargar billetera': 'Recarregar carteira',
+  'Recargas de prueba': 'Recargas de teste',
+  'Recargas de prueba: no se cobra dinero real.':
+    'Recargas de teste: nenhum dinheiro real é cobrado.',
+  'Regala saldo a quien canjee el código, una vez por persona.':
+    'Dá saldo a quem resgatar o código, uma vez por pessoa.',
   Regular: 'Regular',
   Reintentar: 'Tentar novamente',
   Remoto: 'Remoto',
@@ -579,7 +690,12 @@ export const pt: Catalog = {
   'Revisa el presupuesto: los montos deben ser positivos y el máximo no puede ser menor al mínimo.':
     'Revise o orçamento: os valores devem ser positivos e o máximo não pode ser menor que o mínimo.',
   'Revisa este campo.': 'Revise este campo.',
+  'Revisa la configuración: hay valores fuera de rango.':
+    'Revise a configuração: há valores fora do intervalo.',
+  'Revisa la promoción: faltan datos o no son válidos.':
+    'Revise a promoção: faltam dados ou eles são inválidos.',
   'Revisa los datos e inténtalo de nuevo.': 'Revise os dados e tente novamente.',
+  'Revisa los números: la comisión va de 0 a 100.': 'Revise os números: a comissão vai de 0 a 100.',
   'Revisa tu conexión e inténtalo otra vez.': 'Verifique sua conexão e tente novamente.',
   'Ringgit malayo': 'Ringgit malaio',
   'Riyal saudí': 'Rial saudita',
@@ -588,7 +704,13 @@ export const pt: Catalog = {
   'Rupia indonesia': 'Rupia indonésia',
   'Ruta iniciada. {name} te verá en el mapa.': 'Rota iniciada. {name} verá você no mapa.',
   S: 'S',
+  'Saldo disponible': 'Saldo disponível',
+  'Saldo en billeteras: {amount} ({count})': 'Saldo nas carteiras: {amount} ({count})',
+  'Saldo y recargas': 'Saldo e recargas',
+  'Saldo: {amount}': 'Saldo: {amount}',
   'Sale en ~{time} tras ser elegido': 'Sai em ~{time} após ser escolhido',
+  'Se da a cada cuenta nueva, en su moneda. 0 para no dar nada.':
+    'É dado a cada conta nova, na sua moeda. 0 para não dar nada.',
   'Se hace a distancia': 'Feito à distância',
   'Se postuló {when}': 'Candidatou-se {when}',
   'Se puede hacer a distancia, sin ir a un lugar.':
@@ -630,6 +752,8 @@ export const pt: Catalog = {
   'Solo puedes editar tus tareas mientras estén abiertas.':
     'Você só pode editar suas tarefas enquanto estiverem abertas.',
   'Solo puedes responder una vez.': 'Você só pode responder uma vez.',
+  'Solo quien administra la app puede hacer esto.':
+    'Somente quem administra o app pode fazer isso.',
   'Solo quien publicó la tarea puede hacer esto.':
     'Somente quem publicou a tarefa pode fazer isso.',
   'Solo quien publicó la tarea y la persona elegida pueden calificar.':
@@ -637,6 +761,8 @@ export const pt: Catalog = {
   'Solo quien publicó la tarea y la persona elegida pueden verlo.':
     'Somente quem publicou a tarefa e a pessoa escolhida podem ver.',
   'Solo quien se postuló puede hacer esto.': 'Somente quem se candidatou pode fazer isso.',
+  'Suma un porcentaje extra a cada recarga mientras esté activa.':
+    'Soma uma porcentagem extra a cada recarga enquanto estiver ativa.',
   Tarea: 'Tarefa',
   'Tarea cancelada.': 'Tarefa cancelada.',
   'Tarea publicada. Revisa las postulaciones en la pestaña Actividad.':
@@ -649,6 +775,7 @@ export const pt: Catalog = {
   'Tendrás que ingresar de nuevo para ver tus tareas.':
     'Você precisará entrar novamente para ver suas tarefas.',
   'Tiempo de servicio {value}': 'Tempo de serviço {value}',
+  'Tienes {percent} de descuento en la comisión.': 'Você tem {percent} de desconto na comissão.',
   Título: 'Título',
   'Toca una estrella': 'Toque em uma estrela',
   Todas: 'Todas',
@@ -656,6 +783,11 @@ export const pt: Catalog = {
   Todo: 'Tudo',
   'Todo el historial': 'Todo o histórico',
   'Todo listo': 'Tudo pronto',
+  'Tu billetera es en {currency} y esa moneda ya no se puede cambiar.':
+    'Sua carteira é em {currency} e essa moeda não pode mais ser alterada.',
+  'Tu billetera será en {currency}, la moneda de tu cuenta. Después de la primera recarga ya no se puede cambiar.':
+    'Sua carteira será em {currency}, a moeda da sua conta. Depois da primeira recarga não pode mais ser alterada.',
+  'Tu billetera: {balance}': 'Sua carteira: {balance}',
   'Tu calificación ayuda a otras personas a decidir.':
     'Sua avaliação ajuda outras pessoas a decidir.',
   'Tu calificación ayuda a otras personas a decidir. Podrá responderte.':
@@ -663,12 +795,20 @@ export const pt: Catalog = {
   'Tu contraseña': 'Sua senha',
   'Tu cuenta no está activa. Contacta a soporte.':
     'Sua conta não está ativa. Entre em contato com o suporte.',
+  'Tu moneda cambió mientras tanto. Inténtalo de nuevo.':
+    'Sua moeda mudou nesse meio tempo. Tente novamente.',
+  'Tu moneda quedó fija porque ya tienes una billetera.':
+    'Sua moeda ficou fixa porque você já tem uma carteira.',
   'Tu postulación': 'Sua candidatura',
   'Tu postulación: {status}': 'Sua candidatura: {status}',
   'Tu precio ({currency})': 'Seu preço ({currency})',
   'Tu propuesta': 'Sua proposta',
   'Tu reseña': 'Sua resenha',
   'Tu respuesta': 'Sua resposta',
+  'Tu saldo no alcanza para cubrir la comisión. Recarga tu billetera.':
+    'Seu saldo não cobre a comissão. Recarregue sua carteira.',
+  'Tu saldo no alcanza para postularte. Recarga tu billetera.':
+    'Seu saldo não é suficiente para se candidatar. Recarregue sua carteira.',
   'Tu sesión expiró. Ingresa de nuevo.': 'Sua sessão expirou. Entre novamente.',
   'Tu ubicación y radio solo sirven de guía: te muestran qué tan lejos queda cada tarea, pero nunca te impiden postularte. Tú decides.':
     'Sua localização e raio servem apenas de guia: mostram a que distância fica cada tarefa, mas nunca impedem você de se candidatar. Você decide.',
@@ -680,15 +820,18 @@ export const pt: Catalog = {
     'Localização salva. Agora você pode ver as distâncias.',
   'Ubicación indicada': 'Localização indicada',
   'Última ubicación de {name}: {when}.': 'Última localização de {name}: {when}.',
+  'Un crédito necesita un código.': 'Um crédito precisa de um código.',
   'Usa al menos 8 caracteres.': 'Use pelo menos 8 caracteres.',
   'Usa el cambio del día de cada servicio; en servicios antiguos, el más cercano disponible.':
     'Usa o câmbio do dia de cada serviço; em serviços antigos, o mais próximo disponível.',
   'Usa el tipo de cambio del día en que se finalizó cada servicio.':
     'Usa a taxa de câmbio do dia em que cada serviço foi finalizado.',
   'Usar mi ubicación': 'Usar minha localização',
+  'Usos máximos (opcional)': 'Usos máximos (opcional)',
   V: 'S',
   'Ver la tarea': 'Ver a tarefa',
   'Ver la tarea {title}': 'Ver a tarefa {title}',
+  'Ver más movimientos': 'Ver mais movimentações',
   'Ver más reseñas': 'Ver mais resenhas',
   'Ver perfil de {full_name}': 'Ver perfil de {full_name}',
   'Ver servicio en curso': 'Ver serviço em andamento',
@@ -701,6 +844,8 @@ export const pt: Catalog = {
   'Won surcoreano': 'Won sul-coreano',
   X: 'Q',
   'Ya calificaste esta tarea.': 'Você já avaliou esta tarefa.',
+  'Ya canjeaste ese código.': 'Você já resgatou esse código.',
+  'Ya hay otra promoción con ese código.': 'Já existe outra promoção com esse código.',
   'Ya te postulaste a esta tarea.': 'Você já se candidatou a esta tarefa.',
   'Ya tienes un servicio en curso. Finalízalo antes de contratar otro.':
     'Você já tem um serviço em andamento. Finalize-o antes de contratar outro.',

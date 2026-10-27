@@ -141,3 +141,14 @@ export function formatBudget(b: BudgetLike, locale = intlLocale()): string {
   if (b.min_minor === b.max_minor) return formatMoney(b.min_minor, b.currency, locale) + suffix;
   return `${formatMoney(b.min_minor, b.currency, locale)} – ${formatMoney(b.max_minor, b.currency, locale)}${suffix}`;
 }
+
+/** 1000 basis points is "10 %": how the commission and discounts are shown. */
+export function formatPercent(bps: number, locale = intlLocale()): string {
+  try {
+    return new Intl.NumberFormat(locale, { style: 'percent', maximumFractionDigits: 2 }).format(
+      bps / 10000
+    );
+  } catch {
+    return `${bps / 100} %`;
+  }
+}
