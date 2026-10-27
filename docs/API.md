@@ -231,6 +231,46 @@ cancelar o renunciar. Para cualquier otra persona es `null`.
 `accept` es atómico y seguro ante concurrencia: si dos peticiones compiten por la misma tarea,
 exactamente una tiene éxito y la otra recibe `409`.
 
+## Billetera
+
+| Método y ruta                            | Quién          | Descripción                                                             |
+| ---------------------------------------- | -------------- | ----------------------------------------------------------------------- |
+| `GET /me/wallet`                         | Quien consulta | Saldo, moneda, comisión, descuento, recargas de prueba y si administra  |
+| `GET /me/wallet/transactions`            | Quien consulta | Libro de movimientos, del más nuevo al más antiguo (`limit`, `offset`)  |
+| `POST /me/wallet/test-topup`             | Quien consulta | Recarga de prueba: `amount_minor`, en la moneda de la billetera         |
+| `POST /me/wallet/redeem`                 | Quien consulta | Canjear un código promocional: `code` (sin distinguir mayúsculas)       |
+| `GET /tasks/{id}/fee-quote?price_minor=` | Quien consulta | Comisión que costaría ser elegida por ese precio y si el saldo la cubre |
+
+- **`GET /me/wallet`** devuelve `currency`, `balance_minor`, `established` (ya se acreditó: la moneda
+  quedó fija), `fee_bps` (comisión en puntos básicos: 1000 es 10 %), `discount_bps`,
+  `test_topups_enabled`, `test_topup_max_minor`, `suggested_topups_minor` e `is_admin`. Sin billetera,
+  muestra la moneda de la cuenta con saldo 0 y `established: false`.
+- **Cobro.** `POST /tasks/{id}/applications` responde `402 insufficient_balance` si el saldo no cubre
+  la comisión de la oferta. `POST /applications/{id}/accept` cobra la comisión a la persona elegida en
+  la misma transacción y responde `409 applicant_insufficient_balance` si ya no le alcanza. La
+  comisión se devuelve en `POST /tasks/{id}/cancel` y `/release` mientras el servicio no haya empezado.
+- **Moneda fija.** `PATCH /me` con otra `currency` responde `409 currency_locked` si ya existe la billetera.
+- Los movimientos tienen `kind` (`topup_test`, `topup_manual`, `topup_bonus`, `promo_credit`,
+  `signup_credit`, `fee`, `fee_refund`), `amount_minor` con signo, `balance_after_minor`, `currency`, y la
+  tarea (`task_id`, `task_title`) o la `note` que lo causó.
+
+### Administración
+
+Solo para las cuentas de `ADMIN_EMAILS`; las demás reciben `403 not_admin`.
+
+| Método y ruta                  | Descripción                                                                                                    |
+| ------------------------------ | -------------------------------------------------------------------------------------------------------------- |
+| `GET /admin/overview`          | Configuración y, por moneda, comisiones netas y saldo en billeteras                                            |
+| `PUT /admin/settings`          | `fee_bps`, `test_topups_enabled`, `test_topup_max_usd_minor`, `signup_credit_usd_minor`                        |
+| `GET /admin/promotions`        | Todas las promociones                                                                                          |
+| `POST /admin/promotions`       | Crear: `name`, `kind`, `value_bps` o `amount_usd_minor`, `code?`, `starts_at?`, `ends_at?`, `max_redemptions?` |
+| `PATCH /admin/promotions/{id}` | `name`, `active`, `starts_at`, `ends_at`/`clear_ends`, `max_redemptions`                                       |
+| `POST /admin/credit`           | Acreditar a alguien: `email`, `amount_minor`, `currency` (se convierte a su billetera), `note?`                |
+
+`kind` es `topup_bonus` (extra en cada recarga), `fee_discount` (rebaja la comisión; con `code` solo
+a quien lo canjee) o `credit_grant` (saldo regalado, exige `code`). Los montos de las promociones y de
+los topes están en USD y se convierten a la moneda de cada billetera.
+
 ## Códigos de error
 
 | Código                                                                                                                                                                                                          | Estado |
@@ -242,6 +282,11 @@ exactamente una tiene éxito y la otra recibe `409`.
 | `invalid_email`, `invalid_password`, `invalid_phone`, `invalid_currency`, `invalid_coordinates`, `invalid_radius`, `invalid_name`, `invalid_city`                                                               | 400    |
 | `invalid_title`, `invalid_description`, `invalid_budget`, `invalid_location`, `invalid_price`, `invalid_message`, `past_schedule`, `category_not_found`, `invalid_rating`, `invalid_comment`, `invalid_reply`   | 400    |
 | `invalid_range`                                                                                                                                                                                                 | 400    |
+| `insufficient_balance`                                                                                                                                                                                          | 402    |
+| `not_admin`, `test_topups_disabled`                                                                                                                                                                             | 403    |
+| `promo_code_not_found`, `promotion_not_found`                                                                                                                                                                   | 404    |
+| `applicant_insufficient_balance`, `currency_locked`, `currency_changed`, `promo_code_unavailable`, `promo_already_redeemed`, `promo_code_taken`                                                                 | 409    |
+| `invalid_amount`, `amount_too_large`, `invalid_settings`, `invalid_promotion`, `invalid_language`                                                                                                               | 400    |
 | `rates_unavailable`                                                                                                                                                                                             | 503    |
 
 Un error sin `code` es genérico (por ejemplo JSON mal formado o un parámetro inválido).

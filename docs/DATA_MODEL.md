@@ -16,13 +16,15 @@ erDiagram
 
 ## Tablas
 
-| Tabla          | Propósito                                                                                                   |
-| -------------- | ----------------------------------------------------------------------------------------------------------- |
-| `users`        | Cuenta, perfil y preferencias (moneda, ubicación, radio)                                                    |
-| `categories`   | Catálogo de categorías, sembrado en la propia migración                                                     |
-| `tasks`        | Solicitudes publicadas, con su presupuesto, ubicación y estado                                              |
-| `applications` | Ofertas de las personas que se postulan a una tarea                                                         |
-| `reviews`      | Calificación de 1 a 5 y comentario entre las dos partes de una tarea finalizada, con una respuesta opcional |
+| Tabla                                                      | Propósito                                                                                                   |
+| ---------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `users`                                                    | Cuenta, perfil y preferencias (moneda, ubicación, radio)                                                    |
+| `categories`                                               | Catálogo de categorías, sembrado en la propia migración                                                     |
+| `tasks`                                                    | Solicitudes publicadas, con su presupuesto, ubicación y estado                                              |
+| `applications`                                             | Ofertas de las personas que se postulan a una tarea                                                         |
+| `reviews`                                                  | Calificación de 1 a 5 y comentario entre las dos partes de una tarea finalizada, con una respuesta opcional |
+| `wallets`, `wallet_transactions`                           | Billetera prepagada (una por persona, con su moneda fija) y libro de todos sus movimientos                  |
+| `platform_settings`, `promotions`, `promotion_redemptions` | Comisión y recargas configurables (una sola fila), promociones y quién canjeó cada una                      |
 
 ## Decisiones
 
@@ -63,6 +65,21 @@ erDiagram
   calificación.
 - **Idioma de la cuenta.** `users.language` (migración 00007) guarda el idioma elegido, o `NULL` si la
   persona sigue al dispositivo. Un `CHECK` limita los valores a los que traducen las apps.
+- **Billetera con libro de movimientos.** `wallets.balance_minor` (con `CHECK >= 0`: el saldo nunca
+  queda negativo, ni siquiera por una carrera) se mueve siempre junto con una fila de
+  `wallet_transactions` en la misma transacción, con monto con signo y saldo resultante. Se bloquea la
+  fila de la billetera (`FOR UPDATE`) antes de tocarla, y la comisión se cobra dentro de la
+  transacción que elige a la persona, **después** de la restricción de un servicio a la vez, así que
+  una elección que pierde la carrera no cobra nada. Un `seq` de identidad ordena movimientos que
+  comparten instante (una recarga y su bono).
+- **Moneda de la billetera, fija.** Se toma de `users.currency` al primer crédito, con
+  `FOR SHARE` sobre la fila del usuario, y un disparador `users_currency_locked_trg` impide cambiar
+  `users.currency` mientras exista la billetera (error `currency_locked`).
+- **Comisión guardada en la tarea.** `tasks.platform_fee_minor` y `platform_fee_currency` guardan lo
+  cobrado para poder devolverlo exacto si el servicio no empieza, aunque cambie la configuración.
+- **Promociones.** `value_bps` (puntos básicos) para bonos y descuentos, `amount_usd_minor` para
+  créditos con código; un índice único sobre `lower(code)` evita códigos repetidos y
+  `promotion_redemptions` (clave primaria `(promotion_id, user_id)`) garantiza un canje por persona.
 - **Estados como `VARCHAR` con `CHECK`** (no `ENUM` de Postgres), para poder añadir estados con una
   migración simple.
 - **Calificación como totales en `users`.** `rating_sum` y `rating_count` se actualizan en la

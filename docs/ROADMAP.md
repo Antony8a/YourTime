@@ -21,6 +21,8 @@ Estado del producto y lo que sigue. Las reglas de lo que ya existe están en
   servicios, y balance total convertido con el cambio del día de cada servicio.
 - Confiabilidad de quien trabaja: tiempo de respuesta y puntualidad justa (solo presencial, con el
   tiempo de ruta y margen por tráfico), en cada postulación y en el perfil público.
+- Billetera prepagada: la comisión (configurable) se cobra a quien resulta elegida y se devuelve si
+  el servicio no empieza; recargas de prueba, códigos, promociones y panel de administración.
 - Privacidad de ubicación (aproximada para terceros) y de contacto (solo entre las dos partes).
 - App móvil con sistema de diseño propio, modo claro y oscuro, estados de carga, vacío y error.
 - Pruebas unitarias y de extremo a extremo, y CI.
@@ -29,6 +31,10 @@ Estado del producto y lo que sigue. Las reglas de lo que ya existe están en
 
 Ordenado por lo que más cambia la experiencia.
 
+0. **Pasarela de pago para recargar la billetera** (hoy son recargas de prueba), pensada para uso
+   mundial: un proveedor que cobre en varias monedas y sin depender de medios locales. Requiere
+   cuenta de comercio y verificar cada pago en el servidor. Mientras la billetera sea crédito sin
+   retiro, conviene revisar las reglas de las tiendas de apps sobre compras digitales dentro de la app.
 1. **Notificaciones push** (Expo): nueva postulación, fuiste elegido, "ya salió", "llegó". Hoy hay
    que tener la app abierta para enterarse, y el servicio en vivo depende de ello.
 2. **Seguimiento en segundo plano** con una tarea nativa de ubicación, para que quien viaja pueda

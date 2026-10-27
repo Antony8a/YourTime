@@ -242,6 +242,44 @@ vivo, así que el tiempo estimado es el de una vía despejada y el margen del 50
 tráfico. Con un proveedor con tráfico en vivo (ver [`ROADMAP.md`](ROADMAP.md)) la medida sería más
 exacta.
 
+## Billetera
+
+Para **postularse** hay que tener saldo en una billetera de créditos; la plataforma cobra una
+**comisión** a quien resulta **elegida**. Es crédito prepagado: se recarga y solo se gasta en
+comisiones, nunca se retira.
+
+- **Moneda.** La billetera nace en la moneda de la cuenta **la primera vez que se acredita** y no
+  vuelve a cambiar; desde ese momento tampoco se puede cambiar la moneda de la cuenta (lo garantiza
+  la base de datos con un disparador, no solo el código). Así no hay que recalcular saldos.
+- **Cuánto se cobra.** Un porcentaje del **precio acordado** (el de la postulación elegida), 10 %
+  por defecto y editable por quien administra. Si la tarea está en otra moneda, se convierte primero
+  a la de la billetera con el cambio del día y **después** se aplica el porcentaje, redondeando hacia
+  arriba para no perder comisión por redondeo. Ejemplo: tarea de COP 50.000, billetera en USD,
+  cambio 4.000: el precio son USD 12,50 y la comisión USD 1,25.
+- **Cuándo.** Postularse no cuesta, pero **exige que el saldo cubra la comisión** de esa oferta (se
+  ve en la hoja de postulación, que se bloquea si no alcanza). El cobro ocurre **solo al ser
+  elegida**, dentro de la misma transacción que la elección: si el saldo ya no alcanza (porque lo
+  gastó en otra tarea), la elección no se hace y quien publicó recibe un aviso para elegir a otra
+  persona. Las tareas remotas pagan igual.
+- **Devolución.** La comisión se devuelve entera si el servicio **no llega a empezar**: renuncia de
+  quien lo hace o cancelación de quien publicó (antes de iniciar el servicio). Un servicio iniciado
+  conserva la comisión.
+- **Recargas.** Hoy son **de prueba**: cada persona se acredita ella misma hasta un máximo que fija
+  quien administra (se desactivan con un interruptor). Quien administra también puede acreditar a
+  alguien que pagó por fuera, en cualquier moneda. La infraestructura (libro de movimientos,
+  conversión, bonos) está lista para conectar una pasarela de pago más adelante.
+- **Promociones.** Tres tipos, creadas por quien administra: **bono por recarga** (un porcentaje
+  extra en cada recarga mientras esté activa), **descuento de comisión** (todos, o solo quien canjee
+  su código) y **crédito con código** (saldo regalado, una vez por persona, con tope de usos). Los
+  montos de las promociones se escriben en USD y se convierten a la moneda de cada billetera.
+- **Crédito de bienvenida.** Opcional: se da a cada cuenta nueva, y por eso fija su moneda desde el
+  registro.
+- **Quién administra.** Las cuentas listadas en `ADMIN_EMAILS` (configuración del servidor, no
+  editable desde la app). Ven una sección **Administración** en el perfil: comisión, recargas de
+  prueba, promociones, recarga manual y totales de comisiones y saldo en billeteras.
+- **Libro de movimientos.** Cada cambio de saldo es un movimiento con su tipo, monto con signo, saldo
+  resultante y la tarea o promoción que lo causó.
+
 ## Balance
 
 Desde **Perfil → Mi balance** cada persona ve dos cifras de un periodo: lo que **ganó** haciendo
@@ -271,5 +309,6 @@ servicios y lo que **gastó** en servicios que pidió, con el detalle de cada un
 
 ## Fuera de alcance por ahora
 
-Pagos o custodia de dinero dentro de la plataforma, chat, notificaciones push, seguimiento en
-segundo plano, fotos en tareas, moderación de reseñas y panel de administración. Están en `ROADMAP.md`.
+Pagos reales entre las personas o custodia del precio de las tareas, **pasarela de pago para
+recargar la billetera** (hoy son recargas de prueba), retiro de saldo, chat, notificaciones push,
+seguimiento en segundo plano, fotos en tareas y moderación de reseñas. Están en `ROADMAP.md`.

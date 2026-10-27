@@ -47,6 +47,13 @@ un Android real.
 tareas abiertas y 6 servicios ya finalizados, con reseñas, precios y fechas entre hace 4 y 71 días;
 Ana tiene 3 servicios hechos (en USD, EUR y COP) y 3 pedidos, para probar el balance.
 
+8. **Billetera** (Perfil → Billetera): para postularse hay que tener saldo que cubra la **comisión**
+   (10 % del precio acordado por defecto); se cobra **solo a quien resulta elegida** y se devuelve si el
+   servicio no llega a empezar. El saldo no se retira. Hoy se recarga con recargas **de prueba**, un
+   código promocional o una recarga manual de quien administra (`ADMIN_EMAILS`, que ve
+   Perfil → Administración para fijar la comisión y crear promociones). Su moneda es la de la cuenta
+   al primer crédito y **ya no cambia**, ni la de la cuenta (ver `PRODUCT.md`).
+
 ## Reglas que no son obvias
 
 Las reglas completas están en [`PRODUCT.md`](PRODUCT.md). Estas son las que más sorprenden:

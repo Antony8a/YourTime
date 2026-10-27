@@ -38,6 +38,7 @@ services:
       DB_AUTO_MIGRATE: 'true'
       TRUST_PROXY: ${TRUST_PROXY:-false}
       REGISTRATION_OPEN: ${REGISTRATION_OPEN:-true}
+      ADMIN_EMAILS: ${ADMIN_EMAILS:-}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:8081,http://localhost:19006}
     depends_on:
       postgres:
