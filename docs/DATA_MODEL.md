@@ -61,6 +61,8 @@ erDiagram
   (`tasks_worker_completed_idx`). Sin contadores aparte no hay nada que se desincronice, a costa de
   una agregación por persona; si pesara, el siguiente paso sería guardar totales como se hizo con la
   calificación.
+- **Idioma de la cuenta.** `users.language` (migración 00007) guarda el idioma elegido, o `NULL` si la
+  persona sigue al dispositivo. Un `CHECK` limita los valores a los que traducen las apps.
 - **Estados como `VARCHAR` con `CHECK`** (no `ENUM` de Postgres), para poder añadir estados con una
   migración simple.
 - **Calificación como totales en `users`.** `rating_sum` y `rating_count` se actualizan en la

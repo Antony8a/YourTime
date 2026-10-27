@@ -165,6 +165,10 @@ cancelar o renunciar. Para cualquier otra persona es `null`.
   `response_seconds` es la **mediana** de lo que tardó en salir (o en empezar, si es remota) tras ser
   elegida, y es `null` sin servicios. `on_time_percent` es `null` si ningún servicio pudo juzgarse.
   Se calcula al consultar, no se guarda.
+- **Idioma.** `GET /me` incluye `language` (`es`, `en`, `pt`, `fr` o `null` si la cuenta sigue al
+  dispositivo). Se elige al registrarse (`language`, acepta también un código regional como `pt-BR`)
+  o con `PATCH /me` (`language`; `""` vuelve a seguir al dispositivo). Un idioma no admitido responde
+  `400 invalid_language`. La API no traduce nada: los textos los pone cada app según el `code` del error.
 - **Estado de reseña en la tarea.** `GET /tasks/{id}` de una tarea finalizada incluye, solo para
   sus dos participantes, `can_review` (aún no calificó), `my_review` (la que escribió) y
   `review_for_me` (la que recibió). Para el resto son `false` y `null`.
