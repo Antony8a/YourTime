@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import type { Review } from '@yourtime/shared-types';
+import { t } from '@yourtime/shared-utils';
 import { ApiError } from '@/api/client';
 import { useCreateReview, useReplyReview } from '@/api/hooks';
 import { useFeedback } from '@/components/feedback/FeedbackProvider';
@@ -34,7 +35,7 @@ export function ReviewSheet({ taskId, counterpartName, visible, onClose }: Revie
 
   const submit = () => {
     if (rating === 0) {
-      setError('Elige de 1 a 5 estrellas.');
+      setError(t('Elige de 1 a 5 estrellas.'));
       return;
     }
     setError(undefined);
@@ -42,11 +43,11 @@ export function ReviewSheet({ taskId, counterpartName, visible, onClose }: Revie
       { rating, comment: comment.trim() || undefined },
       {
         onSuccess: () => {
-          toast(`Calificaste a ${counterpartName}. ¡Gracias!`);
+          toast(t('Calificaste a {counterpartName}. ¡Gracias!', { counterpartName }));
           onClose();
         },
         onError: (e) =>
-          setError(e instanceof ApiError ? e.message : 'No pudimos enviar tu reseña.'),
+          setError(e instanceof ApiError ? e.message : t('No pudimos enviar tu reseña.')),
       }
     );
   };
@@ -55,8 +56,8 @@ export function ReviewSheet({ taskId, counterpartName, visible, onClose }: Revie
     <Sheet
       visible={visible}
       onClose={onClose}
-      title={`¿Cómo te fue con ${counterpartName}?`}
-      subtitle="Tu calificación ayuda a otras personas a decidir. Podrá responderte."
+      title={t('¿Cómo te fue con {counterpartName}?', { counterpartName })}
+      subtitle={t('Tu calificación ayuda a otras personas a decidir. Podrá responderte.')}
     >
       <View style={styles.center}>
         <StarInput
@@ -71,20 +72,26 @@ export function ReviewSheet({ taskId, counterpartName, visible, onClose }: Revie
           tone={rating ? 'default' : 'subtle'}
           accessibilityLiveRegion="polite"
         >
-          {rating ? starLabel(rating) : 'Toca una estrella'}
+          {rating ? starLabel(rating) : t('Toca una estrella')}
         </Text>
       </View>
       <Input
-        label="Comentario (opcional)"
+        label={t('Comentario (opcional)')}
         value={comment}
         onChangeText={setComment}
         multiline
         maxLength={1000}
-        placeholder="Cuenta cómo fue: puntualidad, trato, calidad del trabajo…"
+        placeholder={t('Cuenta cómo fue: puntualidad, trato, calidad del trabajo…')}
         error={error}
       />
-      <Button label="Enviar reseña" icon="star" onPress={submit} loading={create.isPending} block />
-      <Button label="Ahora no" variant="ghost" onPress={onClose} block />
+      <Button
+        label={t('Enviar reseña')}
+        icon="star"
+        onPress={submit}
+        loading={create.isPending}
+        block
+      />
+      <Button label={t('Ahora no')} variant="ghost" onPress={onClose} block />
     </Sheet>
   );
 }
@@ -114,7 +121,7 @@ export function ReplySheet({ review, taskId, visible, onClose }: ReplySheetProps
   const submit = () => {
     if (!review) return;
     if (!text.trim()) {
-      setError('Escribe tu respuesta.');
+      setError(t('Escribe tu respuesta.'));
       return;
     }
     setError(undefined);
@@ -122,11 +129,11 @@ export function ReplySheet({ review, taskId, visible, onClose }: ReplySheetProps
       { reviewId: review.id, text: text.trim() },
       {
         onSuccess: () => {
-          toast('Respuesta publicada.');
+          toast(t('Respuesta publicada.'));
           onClose();
         },
         onError: (e) =>
-          setError(e instanceof ApiError ? e.message : 'No pudimos publicar tu respuesta.'),
+          setError(e instanceof ApiError ? e.message : t('No pudimos publicar tu respuesta.')),
       }
     );
   };
@@ -135,19 +142,19 @@ export function ReplySheet({ review, taskId, visible, onClose }: ReplySheetProps
     <Sheet
       visible={visible}
       onClose={onClose}
-      title="Responder reseña"
-      subtitle={review?.comment ? `“${review.comment}”` : 'Solo puedes responder una vez.'}
+      title={t('Responder reseña')}
+      subtitle={review?.comment ? `“${review.comment}”` : t('Solo puedes responder una vez.')}
     >
       <Input
-        label="Tu respuesta"
+        label={t('Tu respuesta')}
         value={text}
         onChangeText={setText}
         multiline
         maxLength={1000}
-        placeholder="Agradece o aclara lo que haga falta. Será pública y no se puede editar."
+        placeholder={t('Agradece o aclara lo que haga falta. Será pública y no se puede editar.')}
         error={error}
       />
-      <Button label="Publicar respuesta" onPress={submit} loading={reply.isPending} block />
+      <Button label={t('Publicar respuesta')} onPress={submit} loading={reply.isPending} block />
     </Sheet>
   );
 }

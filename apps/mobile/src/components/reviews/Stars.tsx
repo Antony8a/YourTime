@@ -8,21 +8,30 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import type { Rating } from '@yourtime/shared-types';
+import { intlLocale, msg, t, tn } from '@yourtime/shared-utils';
 import { Icon, Text } from '@/components/ui';
 import { haptics } from '@/lib/haptics';
 import { EASE_OUT } from '@/lib/motion';
 
-const STAR_LABELS = ['Mala', 'Regular', 'Buena', 'Muy buena', 'Excelente'] as const;
+const STAR_LABELS = [
+  msg('Mala'),
+  msg('Regular'),
+  msg('Buena'),
+  msg('Muy buena'),
+  msg('Excelente'),
+] as const;
 
 export function starLabel(value: number): string {
-  return STAR_LABELS[value - 1] ?? '';
+  const label = STAR_LABELS[value - 1];
+  return label ? t(label) : '';
 }
 
-/** "4,8" in Spanish; one decimal always so "5" reads as "5,0". */
+/** "4,8" or "4.8" by language; one decimal always so "5" reads as "5,0". */
 export function formatAverage(value: number): string {
-  return new Intl.NumberFormat('es', { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(
-    value
-  );
+  return new Intl.NumberFormat(intlLocale(), {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+  }).format(value);
 }
 
 /** A read-only row of five stars, with half stars. Decorative: callers label it. */
@@ -67,7 +76,7 @@ function StarButton({
     <Pressable
       accessibilityRole="radio"
       accessibilityState={{ checked: filled }}
-      accessibilityLabel={`${index} ${index === 1 ? 'estrella' : 'estrellas'}`}
+      accessibilityLabel={tn(index, '{count} estrella', '{count} estrellas')}
       hitSlop={4}
       onPress={() => {
         haptics.select();
@@ -104,7 +113,7 @@ export function StarInput({
   size?: number;
 }) {
   return (
-    <View accessibilityRole="radiogroup" accessibilityLabel="Calificación" style={styles.row}>
+    <View accessibilityRole="radiogroup" accessibilityLabel={t('Calificación')} style={styles.row}>
       {[1, 2, 3, 4, 5].map((i) => (
         <StarButton key={i} index={i} filled={i <= value} size={size} onSelect={onChange} />
       ))}
@@ -119,20 +128,24 @@ export function StarInput({
 export function RatingBadge({ rating }: { rating: Rating }) {
   if (rating.count === 0) {
     return (
-      <View style={styles.badge} accessible accessibilityLabel="Sin calificaciones todavía">
+      <View style={styles.badge} accessible accessibilityLabel={t('Sin calificaciones todavía')}>
         <Icon name="star-outline" size={13} color="textSubtle" />
         <Text variant="caption" tone="muted">
-          Sin calificaciones
+          {t('Sin calificaciones')}
         </Text>
       </View>
     );
   }
-  const people = rating.count === 1 ? '1 persona' : `${rating.count} personas`;
   return (
     <View
       style={styles.badge}
       accessible
-      accessibilityLabel={`Calificación ${formatAverage(rating.average)} de 5, según ${people}`}
+      accessibilityLabel={tn(
+        rating.count,
+        'Calificación {average} de 5, según {count} persona',
+        'Calificación {average} de 5, según {count} personas',
+        { average: formatAverage(rating.average) }
+      )}
     >
       <Icon name="star" size={13} color="star" />
       <Text variant="caption" style={styles.average}>

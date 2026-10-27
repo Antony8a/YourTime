@@ -2,15 +2,16 @@ import { BottomTabBar } from '@react-navigation/bottom-tabs';
 import { Tabs } from 'expo-router';
 import { View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { msg, t } from '@yourtime/shared-utils';
 import { ServiceBanner } from '@/components/service/ServiceBanner';
 import { Icon, type IconName } from '@/components/ui';
 import { useTheme } from '@/theme/ThemeProvider';
 
 const TABS: { name: string; title: string; icon: IconName; iconActive: IconName }[] = [
-  { name: 'index', title: 'Explorar', icon: 'compass-outline', iconActive: 'compass' },
-  { name: 'publish', title: 'Publicar', icon: 'add-circle-outline', iconActive: 'add-circle' },
-  { name: 'activity', title: 'Actividad', icon: 'briefcase-outline', iconActive: 'briefcase' },
-  { name: 'profile', title: 'Perfil', icon: 'person-outline', iconActive: 'person' },
+  { name: 'index', title: msg('Explorar'), icon: 'compass-outline', iconActive: 'compass' },
+  { name: 'publish', title: msg('Publicar'), icon: 'add-circle-outline', iconActive: 'add-circle' },
+  { name: 'activity', title: msg('Actividad'), icon: 'briefcase-outline', iconActive: 'briefcase' },
+  { name: 'profile', title: msg('Perfil'), icon: 'person-outline', iconActive: 'person' },
 ];
 
 export default function TabsLayout() {
@@ -23,7 +24,7 @@ export default function TabsLayout() {
       tabBar={(props) => (
         <View>
           <ServiceBanner />
-          <View role="navigation" aria-label="Navegación principal">
+          <View role="navigation" aria-label={t('Navegación principal')}>
             <BottomTabBar {...props} />
           </View>
         </View>
@@ -43,14 +44,14 @@ export default function TabsLayout() {
         sceneStyle: { backgroundColor: colors.bg },
       }}
     >
-      {TABS.map((t) => (
+      {TABS.map((tab) => (
         <Tabs.Screen
-          key={t.name}
-          name={t.name}
+          key={tab.name}
+          name={tab.name}
           options={{
-            title: t.title,
+            title: t(tab.title),
             tabBarIcon: ({ focused, color }) => (
-              <Icon name={focused ? t.iconActive : t.icon} size={24} color={color} />
+              <Icon name={focused ? tab.iconActive : tab.icon} size={24} color={color} />
             ),
           }}
         />

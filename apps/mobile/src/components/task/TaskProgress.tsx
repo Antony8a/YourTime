@@ -1,15 +1,16 @@
 import { StyleSheet, View } from 'react-native';
 import type { TaskStatus } from '@yourtime/shared-types';
+import { msg, t } from '@yourtime/shared-utils';
 import { Icon, Text } from '@/components/ui';
 import { useTheme } from '@/theme/ThemeProvider';
 import { space } from '@/theme/tokens';
 
 const STEPS = [
-  { key: 'open', label: 'Publicada' },
-  { key: 'assigned', label: 'Asignada' },
-  { key: 'en_route', label: 'En camino' },
-  { key: 'in_progress', label: 'En servicio' },
-  { key: 'completed', label: 'Finalizada' },
+  { key: 'open', label: msg('Publicada') },
+  { key: 'assigned', label: msg('Asignada') },
+  { key: 'en_route', label: msg('En camino') },
+  { key: 'in_progress', label: msg('En servicio') },
+  { key: 'completed', label: msg('Finalizada') },
 ] as const;
 
 interface TaskProgressProps {
@@ -39,7 +40,11 @@ export function TaskProgress({ status, remote = false, fromAssigned = false }: T
   return (
     <View
       accessible
-      accessibilityLabel={`Progreso: ${steps[current]?.label}, paso ${current + 1} de ${steps.length}`}
+      accessibilityLabel={t('Progreso: {step}, paso {current} de {total}', {
+        step: t(steps[current]?.label ?? ''),
+        current: current + 1,
+        total: steps.length,
+      })}
       style={styles.row}
     >
       {steps.map((step, i) => {
@@ -64,7 +69,7 @@ export function TaskProgress({ status, remote = false, fromAssigned = false }: T
                 style={{ fontWeight: i === current ? '700' : '500', fontSize: 11 }}
                 numberOfLines={1}
               >
-                {step.label}
+                {t(step.label)}
               </Text>
             </View>
             {i < steps.length - 1 ? (

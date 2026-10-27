@@ -1,6 +1,6 @@
 import { StyleSheet, View } from 'react-native';
 import type { BalanceEntry } from '@yourtime/shared-types';
-import { formatDay, formatMoney, roundForDisplay, toKey } from '@yourtime/shared-utils';
+import { formatDay, formatMoney, roundForDisplay, t, toKey } from '@yourtime/shared-utils';
 import { Card, Icon, safeIcon, Text } from '@/components/ui';
 import { space } from '@/theme/tokens';
 
@@ -17,7 +17,10 @@ interface EntryRowProps {
 export function EntryRow({ entry, direction, accountCurrency, onPress }: EntryRowProps) {
   const sign = direction === 'in' ? '+' : '−';
   const amount = `${sign}${formatMoney(entry.amount_minor, entry.currency)}`;
-  const who = direction === 'in' ? 'para' : 'con';
+  const withWho =
+    direction === 'in'
+      ? t('para {name}', { name: entry.counterpart.full_name })
+      : t('con {name}', { name: entry.counterpart.full_name });
   const date = formatDay(toKey(new Date(entry.completed_at)));
   const converted =
     entry.converted_minor != null
@@ -28,7 +31,7 @@ export function EntryRow({ entry, direction, accountCurrency, onPress }: EntryRo
     <Card
       onPress={onPress}
       padded={false}
-      accessibilityLabel={`${entry.title}, ${who} ${entry.counterpart.full_name}, ${date}, ${amount} ${entry.currency}${converted ? `, aproximadamente ${converted} en tu moneda` : ''}`}
+      accessibilityLabel={`${entry.title}, ${withWho}, ${date}, ${amount} ${entry.currency}${converted ? t(', aproximadamente {converted} en tu moneda', { converted }) : ''}`}
     >
       <View style={styles.row}>
         <View style={[styles.icon, { backgroundColor: `${entry.category.color}1F` }]}>
@@ -39,7 +42,7 @@ export function EntryRow({ entry, direction, accountCurrency, onPress }: EntryRo
             {entry.title}
           </Text>
           <Text variant="caption" tone="muted" numberOfLines={2}>
-            {who} {entry.counterpart.full_name} · {date}
+            {withWho} · {date}
           </Text>
         </View>
         <Text

@@ -1,6 +1,7 @@
 import { Pressable, StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { t } from '@yourtime/shared-utils';
 import { Icon, Text } from '@/components/ui';
 import { useTheme } from '@/theme/ThemeProvider';
 import { space } from '@/theme/tokens';
@@ -24,7 +25,7 @@ export function ScreenHeader({ title }: { title: string }) {
     >
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel="Volver"
+        accessibilityLabel={t('Volver')}
         hitSlop={12}
         onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))}
         style={[styles.back, { backgroundColor: colors.surface, borderColor: colors.border }]}

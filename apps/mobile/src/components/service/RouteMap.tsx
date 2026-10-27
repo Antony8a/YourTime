@@ -17,7 +17,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import Svg, { Polyline } from 'react-native-svg';
-import { fitViewport, tileUrl, tilesFor, toScreen, type LatLng } from '@yourtime/shared-utils';
+import { fitViewport, t, tilesFor, tileUrl, toScreen, type LatLng } from '@yourtime/shared-utils';
 import { Icon, Text } from '@/components/ui';
 import { useTheme } from '@/theme/ThemeProvider';
 
@@ -88,7 +88,7 @@ export function RouteMap({ height, destination, worker, route }: RouteMapProps) 
       onLayout={onLayout}
       style={[styles.map, { height, backgroundColor: colors.surfaceMuted }]}
       accessible
-      accessibilityLabel="Mapa del servicio"
+      accessibilityLabel={t('Mapa del servicio')}
     >
       {tiles.map((t) => (
         <Tile

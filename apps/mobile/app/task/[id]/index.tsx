@@ -8,8 +8,11 @@ import {
   formatDateTime,
   formatDistance,
   formatMoney,
+  t,
   timeAgo,
+  tn,
 } from '@yourtime/shared-utils';
+import { categoryName } from '@/i18n/categories';
 import { ApiError } from '@/api/client';
 import { ConvertedAmount, ConvertedBudget } from '@/components/money/Converted';
 import {
@@ -59,7 +62,7 @@ export default function TaskDetailScreen() {
 
   return (
     <View style={styles.flex}>
-      <ScreenHeader title="Tarea" />
+      <ScreenHeader title={t('Tarea')} />
       {query.isLoading ? (
         <Screen noTopInset>
           <View style={{ gap: space.md }}>
@@ -75,11 +78,11 @@ export default function TaskDetailScreen() {
             icon="alert-circle-outline"
             title={
               query.error instanceof ApiError && query.error.status === 404
-                ? 'Esta tarea ya no existe'
-                : 'No pudimos cargar la tarea'
+                ? t('Esta tarea ya no existe')
+                : t('No pudimos cargar la tarea')
             }
-            message="Vuelve atrás e inténtalo de nuevo."
-            actionLabel="Reintentar"
+            message={t('Vuelve atrás e inténtalo de nuevo.')}
+            actionLabel={t('Reintentar')}
             onAction={() => void query.refetch()}
           />
         </Screen>
@@ -132,18 +135,21 @@ function TaskDetail({
   const blockedByActive = isOwner && task.status === 'open' && !!active.data?.as_client;
 
   const fail = (e: unknown) =>
-    toast(e instanceof ApiError ? e.message : 'No pudimos completar la acción.', 'error');
+    toast(e instanceof ApiError ? e.message : t('No pudimos completar la acción.'), 'error');
 
   const onAccept = async (applicationId: string, name: string, price: string) => {
     const ok = await confirm({
-      title: `¿Elegir a ${name}?`,
-      message: `Acordarán ${price}. Las demás postulaciones se descartarán y compartirán sus datos de contacto.`,
-      confirmLabel: 'Sí, elegir',
+      title: t('¿Elegir a {name}?', { name }),
+      message: t(
+        'Acordarán {price}. Las demás postulaciones se descartarán y compartirán sus datos de contacto.',
+        { price }
+      ),
+      confirmLabel: t('Sí, elegir'),
     });
     if (ok)
       accept.mutate(applicationId, {
         onSuccess: () => {
-          toast(`Elegiste a ${name}. Sigue el servicio desde aquí.`);
+          toast(t('Elegiste a {name}. Sigue el servicio desde aquí.', { name }));
           router.push({ pathname: '/service/[id]', params: { id: task.id } });
         },
         onError: fail,
@@ -152,8 +158,8 @@ function TaskDetail({
 
   const onReject = async (applicationId: string, name: string) => {
     const ok = await confirm({
-      title: `¿Descartar a ${name}?`,
-      confirmLabel: 'Descartar',
+      title: t('¿Descartar a {name}?', { name }),
+      confirmLabel: t('Descartar'),
       destructive: true,
     });
     if (ok) reject.mutate(applicationId, { onError: fail });
@@ -162,32 +168,32 @@ function TaskDetail({
   const onWithdraw = async () => {
     if (!mine) return;
     const ok = await confirm({
-      title: '¿Retirar tu postulación?',
-      message: 'Podrás volver a postularte mientras la tarea siga abierta.',
-      confirmLabel: 'Retirar',
+      title: t('¿Retirar tu postulación?'),
+      message: t('Podrás volver a postularte mientras la tarea siga abierta.'),
+      confirmLabel: t('Retirar'),
       destructive: true,
     });
     if (ok)
       withdraw.mutate(mine.id, {
-        onSuccess: () => toast('Postulación retirada.', 'info'),
+        onSuccess: () => toast(t('Postulación retirada.'), 'info'),
         onError: fail,
       });
   };
 
   const onCancel = async () => {
     const ok = await confirm({
-      title: '¿Cancelar la tarea?',
+      title: t('¿Cancelar la tarea?'),
       message:
         task.status === 'open'
-          ? 'Dejará de ser visible para todos.'
-          : 'La persona elegida quedará libre para otros servicios.',
-      confirmLabel: 'Cancelar tarea',
-      cancelLabel: 'Volver',
+          ? t('Dejará de ser visible para todos.')
+          : t('La persona elegida quedará libre para otros servicios.'),
+      confirmLabel: t('Cancelar tarea'),
+      cancelLabel: t('Volver'),
       destructive: true,
     });
     if (ok)
       cancel.mutate(undefined, {
-        onSuccess: () => toast('Tarea cancelada.', 'info'),
+        onSuccess: () => toast(t('Tarea cancelada.'), 'info'),
         onError: fail,
       });
   };
@@ -216,14 +222,16 @@ function TaskDetail({
               <Icon name={safeIcon(task.category.icon)} size={16} color={task.category.color} />
             </View>
             <Text variant="caption" tone="muted">
-              {task.category.name}
+              {categoryName(task.category.name)}
             </Text>
-            <Badge label={taskStatusLabel[task.status]} tone={taskStatusTone[task.status]} />
+            <Badge label={t(taskStatusLabel[task.status])} tone={taskStatusTone[task.status]} />
           </View>
           <Text variant="title">{task.title}</Text>
           <PressableScale
             accessibilityRole="link"
-            accessibilityLabel={`Ver perfil de ${task.poster.full_name}`}
+            accessibilityLabel={t('Ver perfil de {full_name}', {
+              full_name: task.poster.full_name,
+            })}
             disabled={isOwner}
             onPress={() => openProfile(task.poster.id)}
             scaleTo={0.98}
@@ -232,7 +240,7 @@ function TaskDetail({
             <Avatar name={task.poster.full_name} uri={task.poster.avatar_url} size={28} />
             <View style={styles.posterText}>
               <Text variant="caption" tone="muted">
-                {isOwner ? 'Publicada por ti' : task.poster.full_name}
+                {isOwner ? t('Publicada por ti') : task.poster.full_name}
               </Text>
               {isOwner ? null : <RatingBadge rating={task.poster.rating} />}
               <Text variant="caption" tone="muted">
@@ -245,7 +253,9 @@ function TaskDetail({
 
         <Card>
           <Text variant="caption" tone="muted">
-            {task.budget.type === 'negotiable' ? 'Presupuesto' : budgetTypeLabel[task.budget.type]}
+            {task.budget.type === 'negotiable'
+              ? t('Presupuesto')
+              : t(budgetTypeLabel[task.budget.type])}
           </Text>
           {/* A long range ("80.000 COP – 150.000 COP") would wrap into two huge lines. */}
           <Text
@@ -262,19 +272,19 @@ function TaskDetail({
               icon={task.is_remote ? 'globe-outline' : 'location-outline'}
               label={
                 task.is_remote
-                  ? 'Se hace a distancia'
+                  ? t('Se hace a distancia')
                   : [location?.city, location?.address].filter(Boolean).join(' · ') ||
-                    'Ubicación indicada'
+                    t('Ubicación indicada')
               }
             />
             {task.scheduled_at ? (
               <Fact icon="calendar-outline" label={formatDateTime(task.scheduled_at)} />
             ) : (
-              <Fact icon="calendar-outline" label="Sin fecha definida" />
+              <Fact icon="calendar-outline" label={t('Sin fecha definida')} />
             )}
             <Fact
               icon="people-outline"
-              label={`${task.applications_count} ${task.applications_count === 1 ? 'postulación' : 'postulaciones'}`}
+              label={tn(task.applications_count, '{count} postulación', '{count} postulaciones')}
             />
           </View>
           <View style={styles.distance}>
@@ -286,14 +296,16 @@ function TaskDetail({
           <View style={[styles.hint, { backgroundColor: colors.warningSoft }]}>
             <Icon name="information-circle" size={20} color="warning" />
             <Text variant="caption" tone="warning" style={styles.flex}>
-              Queda a {formatDistance(task.distance_km)}, fuera de tu radio preferido. Tú decides si
-              te sirve: puedes postularte igual.
+              {t(
+                'Queda a {distance}, fuera de tu radio preferido. Tú decides si te sirve: puedes postularte igual.',
+                { distance: formatDistance(task.distance_km) }
+              )}
             </Text>
           </View>
         ) : null}
 
         <View style={styles.section}>
-          <Text variant="heading">Descripción</Text>
+          <Text variant="heading">{t('Descripción')}</Text>
           <Text tone="muted" selectable>
             {task.description}
           </Text>
@@ -301,19 +313,19 @@ function TaskDetail({
 
         {/* ---- the chosen applicant (poster) / the poster (chosen applicant) ---- */}
         {isOwner && task.assigned_applicant ? (
-          <ContactCard title="Persona elegida" party={task.assigned_applicant} />
+          <ContactCard title={t('Persona elegida')} party={task.assigned_applicant} />
         ) : null}
         {!isOwner && mine?.status === 'accepted' ? (
-          <ContactCard title="Te eligieron: contacta a quien publicó" party={task.poster} />
+          <ContactCard title={t('Te eligieron: contacta a quien publicó')} party={task.poster} />
         ) : null}
 
         {/* ---- applicant's own offer ---- */}
         {!isOwner && mine ? (
           <Card>
             <View style={styles.offerHead}>
-              <Text variant="heading">Tu postulación</Text>
+              <Text variant="heading">{t('Tu postulación')}</Text>
               <Badge
-                label={applicationStatusLabel[mine.status]}
+                label={t(applicationStatusLabel[mine.status])}
                 tone={applicationStatusTone[mine.status]}
               />
             </View>
@@ -323,7 +335,7 @@ function TaskDetail({
             <ConvertedAmount minor={mine.price_minor} currency={task.budget.currency} />
             {mine.status === 'pending' ? (
               <Button
-                label="Retirar postulación"
+                label={t('Retirar postulación')}
                 variant="ghost"
                 size="sm"
                 onPress={() => void onWithdraw()}
@@ -336,19 +348,21 @@ function TaskDetail({
         {/* ---- poster's offers ---- */}
         {isOwner ? (
           <View style={styles.section}>
-            <Text variant="heading">Postulaciones</Text>
+            <Text variant="heading">{t('Postulaciones')}</Text>
             {blockedByActive && active.data?.as_client ? (
               <View style={[styles.hint, { backgroundColor: colors.warningSoft }]}>
                 <Icon name="information-circle" size={20} color="warning" />
                 <Text variant="caption" tone="warning" style={styles.flex}>
-                  Ya tienes un servicio en curso. Podrás elegir a alguien aquí cuando lo finalices.
+                  {t(
+                    'Ya tienes un servicio en curso. Podrás elegir a alguien aquí cuando lo finalices.'
+                  )}
                 </Text>
               </View>
             ) : null}
             {offers.isLoading ? (
               <ActivityIndicator color={colors.primary} />
             ) : offers.isError ? (
-              <Text tone="danger">No pudimos cargar las postulaciones.</Text>
+              <Text tone="danger">{t('No pudimos cargar las postulaciones.')}</Text>
             ) : offers.data && offers.data.length > 0 ? (
               offers.data.map((a) => (
                 <ApplicantCard
@@ -370,7 +384,7 @@ function TaskDetail({
               ))
             ) : (
               <Text tone="muted">
-                Aún nadie se ha postulado. Cuando llegue una postulación, la verás aquí.
+                {t('Aún nadie se ha postulado. Cuando llegue una postulación, la verás aquí.')}
               </Text>
             )}
           </View>
@@ -379,29 +393,36 @@ function TaskDetail({
         {/* ---- reviews, once the service is finished ---- */}
         {canSeeReviews ? (
           <View style={styles.section}>
-            <Text variant="heading">Calificaciones</Text>
+            <Text variant="heading">{t('Calificaciones')}</Text>
             {task.can_review ? (
               <Card>
-                <Text variant="bodyStrong">¿Cómo te fue con {counterpart.full_name}?</Text>
-                <Text tone="muted" style={styles.reviewPrompt}>
-                  Tu calificación ayuda a otras personas a decidir.
+                <Text variant="bodyStrong">
+                  {t('¿Cómo te fue con {name}?', { name: counterpart.full_name })}
                 </Text>
-                <Button label="Calificar" icon="star" onPress={() => setReviewing(true)} block />
+                <Text tone="muted" style={styles.reviewPrompt}>
+                  {t('Tu calificación ayuda a otras personas a decidir.')}
+                </Text>
+                <Button
+                  label={t('Calificar')}
+                  icon="star"
+                  onPress={() => setReviewing(true)}
+                  block
+                />
               </Card>
             ) : null}
             {task.review_for_me ? (
               <ReviewCard
-                heading={`Reseña de ${counterpart.full_name}`}
+                heading={t('Reseña de {full_name}', { full_name: counterpart.full_name })}
                 review={task.review_for_me}
-                replyLabel="Tu respuesta"
+                replyLabel={t('Tu respuesta')}
                 onReply={task.review_for_me.reply ? undefined : () => setReplying(true)}
               />
             ) : null}
             {task.my_review ? (
               <ReviewCard
-                heading="Tu reseña"
+                heading={t('Tu reseña')}
                 review={task.my_review}
-                replyLabel={`Respuesta de ${counterpart.full_name}`}
+                replyLabel={t('Respuesta de {full_name}', { full_name: counterpart.full_name })}
               />
             ) : null}
           </View>
@@ -412,7 +433,7 @@ function TaskDetail({
           <View style={styles.manage}>
             {canOpenService ? (
               <Button
-                label="Ver servicio en curso"
+                label={t('Ver servicio en curso')}
                 icon="navigate"
                 onPress={() => router.push({ pathname: '/service/[id]', params: { id: task.id } })}
                 block
@@ -420,7 +441,7 @@ function TaskDetail({
             ) : null}
             {isOwner && can('edit') ? (
               <Button
-                label="Editar tarea"
+                label={t('Editar tarea')}
                 icon="create-outline"
                 variant="secondary"
                 onPress={() =>
@@ -431,7 +452,7 @@ function TaskDetail({
             ) : null}
             {isOwner && can('cancel') ? (
               <Button
-                label="Cancelar tarea"
+                label={t('Cancelar tarea')}
                 variant="danger"
                 onPress={() => void onCancel()}
                 loading={cancel.isPending}
@@ -455,13 +476,13 @@ function TaskDetail({
         >
           <View style={styles.flex}>
             <Text variant="caption" tone="muted">
-              Presupuesto
+              {t('Presupuesto')}
             </Text>
             <Text variant="bodyStrong">{formatBudget(task.budget)}</Text>
             <ConvertedBudget budget={task.budget} />
           </View>
           <Button
-            label={mine?.status === 'withdrawn' ? 'Postularme de nuevo' : 'Postularme'}
+            label={mine?.status === 'withdrawn' ? t('Postularme de nuevo') : t('Postularme')}
             icon="paper-plane-outline"
             onPress={() => setApplying(true)}
           />

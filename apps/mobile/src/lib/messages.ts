@@ -1,15 +1,19 @@
 import type { ApplicationStatus, BudgetType, TaskStatus } from '@yourtime/shared-types';
+import { msg } from '@yourtime/shared-utils';
 import type { BadgeTone } from '@/components/ui';
 
-/** User-facing Spanish copy for backend vocabulary, in one place. */
+/**
+ * User-facing copy for backend vocabulary, in one place. The labels are marked with
+ * `msg` and translated where they are shown: `t` over the label.
+ */
 
 export const taskStatusLabel: Record<TaskStatus, string> = {
-  open: 'Abierta',
-  assigned: 'Asignada',
-  en_route: 'En camino',
-  in_progress: 'En servicio',
-  completed: 'Finalizada',
-  cancelled: 'Cancelada',
+  open: msg('Abierta'),
+  assigned: msg('Asignada'),
+  en_route: msg('En camino'),
+  in_progress: msg('En servicio'),
+  completed: msg('Finalizada'),
+  cancelled: msg('Cancelada'),
 };
 
 export const taskStatusTone: Record<TaskStatus, BadgeTone> = {
@@ -22,10 +26,10 @@ export const taskStatusTone: Record<TaskStatus, BadgeTone> = {
 };
 
 export const applicationStatusLabel: Record<ApplicationStatus, string> = {
-  pending: 'Pendiente',
-  accepted: 'Aceptada',
-  rejected: 'No seleccionada',
-  withdrawn: 'Retirada',
+  pending: msg('Pendiente'),
+  accepted: msg('Aceptada'),
+  rejected: msg('No seleccionada'),
+  withdrawn: msg('Retirada'),
 };
 
 export const applicationStatusTone: Record<ApplicationStatus, BadgeTone> = {
@@ -36,9 +40,9 @@ export const applicationStatusTone: Record<ApplicationStatus, BadgeTone> = {
 };
 
 export const budgetTypeLabel: Record<BudgetType, string> = {
-  fixed: 'Precio fijo',
-  hourly: 'Por hora',
-  negotiable: 'A convenir',
+  fixed: msg('Precio fijo'),
+  hourly: msg('Por hora'),
+  negotiable: msg('A convenir'),
 };
 
 /** Guesses a sensible default currency from the device region. */

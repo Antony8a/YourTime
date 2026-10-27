@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { ALL_TIME, presetRange, sameRange, type DateRange } from '@yourtime/shared-utils';
+import { ALL_TIME, presetRange, sameRange, t, type DateRange } from '@yourtime/shared-utils';
 import { useBalance } from '@/api/hooks';
 import { DateRangeSheet } from '@/components/balance/DateRangeSheet';
 import { NetCard, SummaryCards } from '@/components/balance/BalanceCards';
@@ -33,7 +33,7 @@ export default function BalanceScreen() {
 
   return (
     <View style={styles.flex}>
-      <ScreenHeader title="Mi balance" />
+      <ScreenHeader title={t('Mi balance')} />
       <Screen noTopInset onRefresh={() => void balance.refetch()} refreshing={balance.isRefetching}>
         <View style={styles.stack}>
           <PeriodBar
@@ -59,8 +59,8 @@ export default function BalanceScreen() {
           ) : balance.isError || !data ? (
             <EmptyState
               icon="cloud-offline-outline"
-              title="No pudimos cargar tu balance"
-              actionLabel="Reintentar"
+              title={t('No pudimos cargar tu balance')}
+              actionLabel={t('Reintentar')}
               onAction={() => void balance.refetch()}
             />
           ) : (
@@ -73,8 +73,8 @@ export default function BalanceScreen() {
                 value={side}
                 onChange={setSide}
                 options={[
-                  { value: 'earned', label: `Ganado (${countOf('earned')})` },
-                  { value: 'spent', label: `Gastado (${countOf('spent')})` },
+                  { value: 'earned', label: t('Ganado ({value})', { value: countOf('earned') }) },
+                  { value: 'spent', label: t('Gastado ({value})', { value: countOf('spent') }) },
                 ]}
               />
 
@@ -83,17 +83,17 @@ export default function BalanceScreen() {
                   icon={side === 'earned' ? 'trending-up' : 'trending-down'}
                   title={
                     side === 'earned'
-                      ? 'No hay servicios realizados en este periodo'
-                      : 'No hay servicios solicitados en este periodo'
+                      ? t('No hay servicios realizados en este periodo')
+                      : t('No hay servicios solicitados en este periodo')
                   }
                   message={
                     sameRange(range, ALL_TIME)
                       ? side === 'earned'
-                        ? 'Cuando termines un servicio, el pago aparecerá aquí.'
-                        : 'Cuando un servicio que pediste se finalice, lo verás aquí.'
-                      : 'Prueba con otro periodo para ver más movimientos.'
+                        ? t('Cuando termines un servicio, el pago aparecerá aquí.')
+                        : t('Cuando un servicio que pediste se finalice, lo verás aquí.')
+                      : t('Prueba con otro periodo para ver más movimientos.')
                   }
-                  actionLabel={sameRange(range, ALL_TIME) ? undefined : 'Ver todo el historial'}
+                  actionLabel={sameRange(range, ALL_TIME) ? undefined : t('Ver todo el historial')}
                   onAction={() => setRange(ALL_TIME)}
                 />
               ) : (
@@ -111,18 +111,19 @@ export default function BalanceScreen() {
                   ))}
                   {data[side].has_more ? (
                     <Text variant="caption" tone="subtle" style={styles.more}>
-                      Mostramos los {entries.length} más recientes. Los totales incluyen todos los
-                      servicios del periodo.
+                      {t(
+                        'Mostramos los {count} más recientes. Los totales incluyen todos los servicios del periodo.',
+                        { count: entries.length }
+                      )}
                     </Text>
                   ) : null}
                 </View>
               )}
 
               <Text variant="caption" tone="subtle">
-                Cuenta los servicios finalizados dentro del periodo, al precio acordado y en la
-                moneda en que se acordó. La conversión a tu moneda es solo una referencia: usa el
-                tipo de cambio del día en que se finalizó cada servicio. Tipos de cambio de Exchange
-                Rate API (exchangerate-api.com).
+                {t(
+                  'Cuenta los servicios finalizados dentro del periodo, al precio acordado y en la moneda en que se acordó. La conversión a tu moneda es solo una referencia: usa el tipo de cambio del día en que se finalizó cada servicio. Tipos de cambio de Exchange Rate API (exchangerate-api.com).'
+                )}
               </Text>
             </View>
           )}

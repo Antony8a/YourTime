@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { Fragment, useEffect, type ReactNode } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { Stack, useRootNavigationState, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -10,6 +10,7 @@ import { AppFrame } from '@/components/AppFrame';
 import { BrandMark } from '@/components/BrandMark';
 import { PortalHost } from '@/components/ui/Portal';
 import { FeedbackProvider } from '@/components/feedback/FeedbackProvider';
+import { useLanguage } from '@/i18n';
 import { useAuth } from '@/store/auth';
 import { ThemeProvider, useTheme } from '@/theme/ThemeProvider';
 
@@ -24,20 +25,33 @@ const queryClient = new QueryClient({
   },
 });
 
+/**
+ * Starts the screens over when the language changes, so every text is read again
+ * in the new one. The query cache sits above it and keeps its data.
+ */
+function Localized({ children }: { children: ReactNode }) {
+  const locale = useLanguage((s) => s.locale);
+  return <Fragment key={locale}>{children}</Fragment>;
+}
+
 export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <ThemeProvider>
         <QueryClientProvider client={queryClient}>
-          <FeedbackProvider>
-            <AuthGate />
-            <PortalHost />
-          </FeedbackProvider>
+          <Localized>
+            <FeedbackProvider>
+              <AuthGate />
+              <PortalHost />
+            </FeedbackProvider>
+          </Localized>
         </QueryClientProvider>
       </ThemeProvider>
     </SafeAreaProvider>
   );
 }
+
+let sessionRestoreStarted = false;
 
 /** Restores the session, then keeps people on the right side of the login wall. */
 function AuthGate() {
@@ -48,6 +62,9 @@ function AuthGate() {
   const navigationKey = useRootNavigationState()?.key;
 
   useEffect(() => {
+    // Once per launch: this component starts over with every language change.
+    if (sessionRestoreStarted) return;
+    sessionRestoreStarted = true;
     void bootstrapSession();
   }, []);
 

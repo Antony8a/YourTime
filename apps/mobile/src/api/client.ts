@@ -1,6 +1,7 @@
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 import type { ApiProblem, Page, Session } from '@yourtime/shared-types';
+import { t } from '@yourtime/shared-utils';
 import { messageFor, messageForRule } from '@/lib/errors';
 import { storage } from '@/lib/storage';
 import { useAuth } from '@/store/auth';
@@ -131,8 +132,10 @@ async function send<T>(
     throw new ApiError(
       0,
       controller.signal.aborted
-        ? 'El servidor tarda en responder; puede estar despertando. Inténtalo de nuevo en un momento.'
-        : 'No hay conexión con el servidor. Revisa tu internet e inténtalo de nuevo.'
+        ? t(
+            'El servidor tarda en responder; puede estar despertando. Inténtalo de nuevo en un momento.'
+          )
+        : t('No hay conexión con el servidor. Revisa tu internet e inténtalo de nuevo.')
     );
   } finally {
     clearTimeout(timer);

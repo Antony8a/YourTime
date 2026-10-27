@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { View } from 'react-native';
 import { useRouter } from 'expo-router';
+import { t } from '@yourtime/shared-utils';
 import { useCreateTask } from '@/api/hooks';
 import { useFeedback } from '@/components/feedback/FeedbackProvider';
 import { TaskForm } from '@/components/task/TaskForm';
@@ -17,19 +18,21 @@ export default function PublishScreen() {
   return (
     <Screen bottomInset={space.xl}>
       <View style={{ gap: space.xs, marginBottom: space.xxl }}>
-        <Text variant="display">Publicar tarea</Text>
-        <Text tone="muted">Cuenta qué necesitas. Recibirás postulaciones y tú eliges a quién.</Text>
+        <Text variant="display">{t('Publicar tarea')}</Text>
+        <Text tone="muted">
+          {t('Cuenta qué necesitas. Recibirás postulaciones y tú eliges a quién.')}
+        </Text>
       </View>
 
       <TaskForm
         key={formKey}
-        submitLabel="Publicar tarea"
+        submitLabel={t('Publicar tarea')}
         loading={create.isPending}
         error={create.error}
         onSubmit={(input) =>
           create.mutate(input, {
             onSuccess: (task) => {
-              toast('Tarea publicada. Revisa las postulaciones en la pestaña Actividad.');
+              toast(t('Tarea publicada. Revisa las postulaciones en la pestaña Actividad.'));
               setFormKey((k) => k + 1);
               router.push({ pathname: '/task/[id]', params: { id: task.id } });
             },

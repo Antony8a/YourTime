@@ -1,6 +1,6 @@
 import { StyleSheet, View } from 'react-native';
 import type { Application } from '@yourtime/shared-types';
-import { formatMoney, timeAgo } from '@yourtime/shared-utils';
+import { formatMoney, t, timeAgo } from '@yourtime/shared-utils';
 import { ConvertedAmount } from '@/components/money/Converted';
 import { ReliabilityFacts } from '@/components/reviews/ReliabilityFacts';
 import { RatingBadge } from '@/components/reviews/Stars';
@@ -37,7 +37,9 @@ export function ApplicantCard({
       <View style={styles.head}>
         <PressableScale
           accessibilityRole="link"
-          accessibilityLabel={`Ver perfil de ${application.applicant.full_name}`}
+          accessibilityLabel={t('Ver perfil de {full_name}', {
+            full_name: application.applicant.full_name,
+          })}
           onPress={onPressProfile}
           scaleTo={0.98}
           style={styles.person}
@@ -51,16 +53,16 @@ export function ApplicantCard({
             <Text variant="heading">{application.applicant.full_name}</Text>
             <RatingBadge rating={application.applicant.rating} />
             <Text variant="caption" tone="subtle">
-              Se postuló {timeAgo(application.created_at)}
+              {t('Se postuló {when}', { when: timeAgo(application.created_at) })}
             </Text>
           </View>
         </PressableScale>
         {pending && applicantBusy ? (
-          <Badge label="Ocupado ahora" tone="warning" icon="time-outline" />
+          <Badge label={t('Ocupado ahora')} tone="warning" icon="time-outline" />
         ) : null}
         {!pending ? (
           <Badge
-            label={applicationStatusLabel[application.status]}
+            label={t(applicationStatusLabel[application.status])}
             tone={applicationStatusTone[application.status]}
           />
         ) : null}
@@ -68,12 +70,12 @@ export function ApplicantCard({
 
       <ReliabilityFacts
         reliability={application.applicant.reliability}
-        emptyLabel="Aún sin servicios realizados."
+        emptyLabel={t('Aún sin servicios realizados.')}
       />
 
       <View style={styles.price}>
         <Text variant="caption" tone="muted">
-          Propone
+          {t('Propone')}
         </Text>
         <Text variant="title" level={0} tone="primary">
           {formatMoney(application.price_minor, application.currency)}
@@ -85,7 +87,7 @@ export function ApplicantCard({
 
       {canDecide && pending && applicantBusy ? (
         <Text variant="caption" tone="warning" style={styles.busyNote}>
-          Está haciendo otro servicio ahora. Podrás elegirle cuando termine.
+          {t('Está haciendo otro servicio ahora. Podrás elegirle cuando termine.')}
         </Text>
       ) : null}
 
@@ -93,7 +95,7 @@ export function ApplicantCard({
         <View style={styles.actions}>
           <View style={styles.flex}>
             <Button
-              label="Elegir"
+              label={t('Elegir')}
               icon="checkmark"
               onPress={onAccept}
               loading={busy}
@@ -101,7 +103,7 @@ export function ApplicantCard({
               block
             />
           </View>
-          <Button label="Descartar" variant="ghost" onPress={onReject} disabled={busy} />
+          <Button label={t('Descartar')} variant="ghost" onPress={onReject} disabled={busy} />
         </View>
       ) : null}
     </Card>

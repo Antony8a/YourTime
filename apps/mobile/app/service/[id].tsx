@@ -10,6 +10,7 @@ import {
   formatDistance,
   formatElapsed,
   formatMoney,
+  t,
   timeAgo,
 } from '@yourtime/shared-utils';
 import { ApiError } from '@/api/client';
@@ -66,7 +67,7 @@ export default function ServiceScreen() {
   const back = (
     <PressableScale
       accessibilityRole="button"
-      accessibilityLabel="Volver"
+      accessibilityLabel={t('Volver')}
       onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))}
       style={[
         styles.back,
@@ -103,13 +104,13 @@ export default function ServiceScreen() {
           icon="car-outline"
           title={
             task && participant && !live
-              ? 'Este servicio ya no está activo'
+              ? t('Este servicio ya no está activo')
               : query.error instanceof ApiError && query.error.status === 404
-                ? 'Este servicio no existe'
-                : 'No pudimos abrir el servicio'
+                ? t('Este servicio no existe')
+                : t('No pudimos abrir el servicio')
           }
-          message="Solo quien publicó la tarea y la persona elegida pueden verlo."
-          actionLabel={task ? 'Ver la tarea' : 'Reintentar'}
+          message={t('Solo quien publicó la tarea y la persona elegida pueden verlo.')}
+          actionLabel={task ? t('Ver la tarea') : t('Reintentar')}
           onAction={() =>
             task
               ? router.replace({ pathname: '/task/[id]', params: { id: task.id } })
@@ -158,7 +159,7 @@ function ServiceView({
 
   const isWorker = task.is_worker;
   const counterpart = isWorker ? task.poster : task.assigned_applicant;
-  const name = counterpart?.full_name ?? 'la otra persona';
+  const name = counterpart?.full_name ?? t('la otra persona');
   const travelling = task.status === 'en_route';
   const working = task.status === 'in_progress';
   const live = travelling || working;
@@ -199,7 +200,7 @@ function ServiceView({
   }, [task.status, task.can_review]);
 
   const fail = (e: unknown) =>
-    toast(e instanceof ApiError ? e.message : 'No pudimos completar la acción.', 'error');
+    toast(e instanceof ApiError ? e.message : t('No pudimos completar la acción.'), 'error');
   const has = (action: Task['actions'][number]) => task.actions.includes(action);
 
   const onStartRoute = async () => {
@@ -214,7 +215,10 @@ function ServiceView({
         longitude: place.longitude,
         ...(trip ? { eta_seconds: Math.round(trip.durationMin * 60) } : {}),
       },
-      { onSuccess: () => toast(`Ruta iniciada. ${name} te verá en el mapa.`), onError: fail }
+      {
+        onSuccess: () => toast(t('Ruta iniciada. {name} te verá en el mapa.', { name })),
+        onError: fail,
+      }
     );
   };
 
@@ -224,42 +228,48 @@ function ServiceView({
         ? distanceKm(worker, destination)
         : null;
     const ok = await confirm({
-      title: '¿Iniciar el servicio?',
+      title: t('¿Iniciar el servicio?'),
       message:
         away != null
-          ? `Según tu ubicación aún estás a ${formatDistance(away)} del destino. Inicia el servicio solo cuando hayas llegado.`
-          : `${name} verá que el servicio comenzó.`,
-      confirmLabel: 'Iniciar servicio',
+          ? t(
+              'Según tu ubicación aún estás a {value} del destino. Inicia el servicio solo cuando hayas llegado.',
+              { value: formatDistance(away) }
+            )
+          : t('{name} verá que el servicio comenzó.', { name }),
+      confirmLabel: t('Iniciar servicio'),
     });
     if (ok)
       startService.mutate(undefined, {
-        onSuccess: () => toast('Servicio iniciado.'),
+        onSuccess: () => toast(t('Servicio iniciado.')),
         onError: fail,
       });
   };
 
   const onComplete = async () => {
     const ok = await confirm({
-      title: isWorker ? '¿Finalizar el servicio?' : '¿Confirmar que terminó?',
-      message: 'Después podrán calificarse mutuamente.',
-      confirmLabel: isWorker ? 'Finalizar' : 'Confirmar',
+      title: isWorker ? t('¿Finalizar el servicio?') : t('¿Confirmar que terminó?'),
+      message: t('Después podrán calificarse mutuamente.'),
+      confirmLabel: isWorker ? t('Finalizar') : t('Confirmar'),
     });
     if (ok)
-      complete.mutate(undefined, { onSuccess: () => toast('Servicio finalizado.'), onError: fail });
+      complete.mutate(undefined, {
+        onSuccess: () => toast(t('Servicio finalizado.')),
+        onError: fail,
+      });
   };
 
   const onRelease = async () => {
     const ok = await confirm({
-      title: '¿Renunciar a este servicio?',
-      message: 'La tarea volverá a estar disponible y la persona podrá elegir a alguien más.',
-      confirmLabel: 'Renunciar',
-      cancelLabel: 'Seguir',
+      title: t('¿Renunciar a este servicio?'),
+      message: t('La tarea volverá a estar disponible y la persona podrá elegir a alguien más.'),
+      confirmLabel: t('Renunciar'),
+      cancelLabel: t('Seguir'),
       destructive: true,
     });
     if (ok)
       release.mutate(undefined, {
         onSuccess: () => {
-          toast('Renunciaste al servicio.', 'info');
+          toast(t('Renunciaste al servicio.'), 'info');
           router.replace({ pathname: '/task/[id]', params: { id: task.id } });
         },
         onError: fail,
@@ -268,16 +278,19 @@ function ServiceView({
 
   const onCancel = async () => {
     const ok = await confirm({
-      title: '¿Cancelar el servicio?',
-      message: `${name} quedará libre para otros servicios. No podrás cancelar una vez que comience.`,
-      confirmLabel: 'Cancelar servicio',
-      cancelLabel: 'Volver',
+      title: t('¿Cancelar el servicio?'),
+      message: t(
+        '{name} quedará libre para otros servicios. No podrás cancelar una vez que comience.',
+        { name }
+      ),
+      confirmLabel: t('Cancelar servicio'),
+      cancelLabel: t('Volver'),
       destructive: true,
     });
     if (ok)
       cancel.mutate(undefined, {
         onSuccess: () => {
-          toast('Servicio cancelado.', 'info');
+          toast(t('Servicio cancelado.'), 'info');
           router.replace({ pathname: '/task/[id]', params: { id: task.id } });
         },
         onError: fail,
@@ -291,40 +304,40 @@ function ServiceView({
         return isWorker
           ? {
               icon: 'time-outline',
-              title: 'Todo listo',
+              title: t('Todo listo'),
               subtitle: task.is_remote
-                ? 'Inicia el servicio cuando estés listo.'
-                : 'Inicia la ruta cuando salgas hacia el destino.',
+                ? t('Inicia el servicio cuando estés listo.')
+                : t('Inicia la ruta cuando salgas hacia el destino.'),
             }
           : {
               icon: 'time-outline',
-              title: `${name} se prepara`,
-              subtitle: 'Verás aquí cuando salga hacia ti.',
+              title: t('{name} se prepara', { name }),
+              subtitle: t('Verás aquí cuando salga hacia ti.'),
             };
       case 'en_route':
         return isWorker
-          ? { icon: 'navigate', title: 'Rumbo al destino', subtitle: etaText(eta, remainingKm) }
+          ? { icon: 'navigate', title: t('Rumbo al destino'), subtitle: etaText(eta, remainingKm) }
           : {
               icon: 'navigate',
-              title: `${name} va en camino`,
+              title: t('{name} va en camino', { name }),
               subtitle: etaText(eta, remainingKm),
             };
       case 'in_progress':
         return {
           icon: 'construct',
-          title: 'Servicio en curso',
+          title: t('Servicio en curso'),
           subtitle: isWorker
-            ? 'Finaliza cuando el trabajo esté hecho.'
-            : `${name} está trabajando en tu tarea.`,
+            ? t('Finaliza cuando el trabajo esté hecho.')
+            : t('{name} está trabajando en tu tarea.', { name }),
         };
       default:
         return {
           icon: 'checkmark-circle',
-          title: 'Servicio finalizado',
+          title: t('Servicio finalizado'),
           subtitle:
             startedAt && finishedAt
-              ? `Duración: ${formatElapsed(finishedAt - startedAt)}`
-              : 'Gracias por usar YourTime.',
+              ? t('Duración: {value}', { value: formatElapsed(finishedAt - startedAt) })
+              : t('Gracias por usar YourTime.'),
         };
     }
   })();
@@ -334,9 +347,9 @@ function ServiceView({
       ? formatMoney(task.agreed_price_minor, task.budget.currency)
       : null;
   const where = task.is_remote
-    ? 'Servicio remoto'
+    ? t('Servicio remoto')
     : [task.location?.address, task.location?.city].filter(Boolean).join(', ') ||
-      'Ubicación indicada';
+      t('Ubicación indicada');
 
   return (
     <View role="main" style={[styles.flex, { backgroundColor: colors.bg }]}>
@@ -358,9 +371,9 @@ function ServiceView({
         >
           <Icon name="globe-outline" size={56} color="primary" />
           <Text variant="heading" level={0}>
-            Servicio remoto
+            {t('Servicio remoto')}
           </Text>
-          <Text tone="muted">No hay ruta que recorrer.</Text>
+          <Text tone="muted">{t('No hay ruta que recorrer.')}</Text>
         </LinearGradient>
       )}
 
@@ -391,7 +404,9 @@ function ServiceView({
             <Text
               level={0}
               style={styles.timer}
-              accessibilityLabel={`Tiempo de servicio ${formatElapsed(now - startedAt)}`}
+              accessibilityLabel={t('Tiempo de servicio {value}', {
+                value: formatElapsed(now - startedAt),
+              })}
             >
               {formatElapsed(now - startedAt)}
             </Text>
@@ -399,22 +414,27 @@ function ServiceView({
 
           {stale && task.worker_location ? (
             <Text variant="caption" tone="warning">
-              Última ubicación de {name}: {timeAgo(task.worker_location.updated_at)}.
+              {t('Última ubicación de {name}: {when}.', {
+                name,
+                when: timeAgo(task.worker_location.updated_at),
+              })}
             </Text>
           ) : null}
           {isWorker && live && onSite && sharing.denied ? (
             <Card style={{ backgroundColor: colors.warningSoft, borderColor: colors.warningSoft }}>
               <Text variant="bodyStrong" tone="warning">
-                No estás compartiendo tu ubicación
+                {t('No estás compartiendo tu ubicación')}
               </Text>
               <Text variant="caption" tone="warning">
-                Activa el permiso de ubicación para que {name} te vea en el mapa.
+                {t('Activa el permiso de ubicación para que {name} te vea en el mapa.', { name })}
               </Text>
             </Card>
           ) : null}
           {isWorker && live && onSite && !sharing.denied ? (
             <Text variant="caption" tone="subtle">
-              Compartiendo tu ubicación con {name} mientras esta pantalla esté abierta.
+              {t('Compartiendo tu ubicación con {name} mientras esta pantalla esté abierta.', {
+                name,
+              })}
             </Text>
           ) : null}
 
@@ -428,21 +448,21 @@ function ServiceView({
                   {counterpart.full_name}
                 </Text>
                 <Text variant="caption" tone="subtle">
-                  {isWorker ? 'Quien publicó la tarea' : 'Quien hace el servicio'}
+                  {isWorker ? t('Quien publicó la tarea') : t('Quien hace el servicio')}
                 </Text>
                 <RatingBadge rating={counterpart.rating} />
               </View>
               {counterpart.phone ? (
                 <RoundButton
                   icon="call"
-                  label={`Llamar a ${counterpart.full_name}`}
+                  label={t('Llamar a {full_name}', { full_name: counterpart.full_name })}
                   onPress={() => void Linking.openURL(`tel:${counterpart.phone}`)}
                 />
               ) : null}
               {counterpart.email ? (
                 <RoundButton
                   icon="mail"
-                  label={`Escribir a ${counterpart.full_name}`}
+                  label={t('Escribir a {full_name}', { full_name: counterpart.full_name })}
                   onPress={() => void Linking.openURL(`mailto:${counterpart.email}`)}
                 />
               ) : null}
@@ -450,10 +470,10 @@ function ServiceView({
           ) : null}
 
           <View style={styles.details}>
-            <Detail icon="clipboard-outline" label="Servicio">
+            <Detail icon="clipboard-outline" label={t('Servicio')}>
               <PressableScale
                 accessibilityRole="link"
-                accessibilityLabel={`Ver la tarea ${task.title}`}
+                accessibilityLabel={t('Ver la tarea {title}', { title: task.title })}
                 onPress={() => router.push({ pathname: '/task/[id]', params: { id: task.id } })}
                 style={styles.linkRow}
               >
@@ -463,11 +483,11 @@ function ServiceView({
                 <Icon name="chevron-forward" size={16} color="textSubtle" />
               </PressableScale>
             </Detail>
-            <Detail icon={task.is_remote ? 'globe-outline' : 'location-outline'} label="Dónde">
+            <Detail icon={task.is_remote ? 'globe-outline' : 'location-outline'} label={t('Dónde')}>
               <Text variant="bodyStrong">{where}</Text>
             </Detail>
             {price ? (
-              <Detail icon="cash-outline" label="Precio acordado">
+              <Detail icon="cash-outline" label={t('Precio acordado')}>
                 <Text variant="bodyStrong" tone="primary" style={styles.tabular}>
                   {price}
                 </Text>
@@ -482,7 +502,7 @@ function ServiceView({
           <View style={styles.actions}>
             {has('start_route') ? (
               <Button
-                label="Iniciar ruta"
+                label={t('Iniciar ruta')}
                 icon="navigate"
                 onPress={() => void onStartRoute()}
                 loading={startRoute.isPending || locating}
@@ -491,7 +511,7 @@ function ServiceView({
             ) : null}
             {has('start_service') ? (
               <Button
-                label="Iniciar servicio"
+                label={t('Iniciar servicio')}
                 icon="play"
                 onPress={() => void onStartService()}
                 loading={startService.isPending}
@@ -500,7 +520,7 @@ function ServiceView({
             ) : null}
             {has('complete') ? (
               <Button
-                label={isWorker ? 'Finalizar servicio' : 'Confirmar finalización'}
+                label={isWorker ? t('Finalizar servicio') : t('Confirmar finalización')}
                 icon="checkmark-done"
                 onPress={() => void onComplete()}
                 loading={complete.isPending}
@@ -509,7 +529,7 @@ function ServiceView({
             ) : null}
             {task.status === 'completed' && task.can_review ? (
               <Button
-                label={`Calificar a ${name}`}
+                label={t('Calificar a {name}', { name })}
                 icon="star"
                 onPress={() => setReviewing(true)}
                 block
@@ -517,7 +537,7 @@ function ServiceView({
             ) : null}
             {task.status === 'completed' ? (
               <Button
-                label="Ver la tarea"
+                label={t('Ver la tarea')}
                 variant="secondary"
                 onPress={() => router.replace({ pathname: '/task/[id]', params: { id: task.id } })}
                 block
@@ -525,7 +545,7 @@ function ServiceView({
             ) : null}
             {has('release') ? (
               <Button
-                label="Renunciar a este servicio"
+                label={t('Renunciar a este servicio')}
                 variant="danger"
                 onPress={() => void onRelease()}
                 loading={release.isPending}
@@ -534,7 +554,7 @@ function ServiceView({
             ) : null}
             {has('cancel') ? (
               <Button
-                label="Cancelar servicio"
+                label={t('Cancelar servicio')}
                 variant="danger"
                 onPress={() => void onCancel()}
                 loading={cancel.isPending}
@@ -558,9 +578,9 @@ function ServiceView({
 }
 
 function etaText(eta: number | null, km: number | null): string {
-  if (eta == null || km == null) return 'Calculando la ruta…';
-  if (eta === 0) return 'Llegando al destino';
-  return `Llega en ~${eta} min · ${formatDistance(km)}`;
+  if (eta == null || km == null) return t('Calculando la ruta…');
+  if (eta === 0) return t('Llegando al destino');
+  return t('Llega en ~{eta} min · {distance}', { eta, distance: formatDistance(km) });
 }
 
 function RoundButton({

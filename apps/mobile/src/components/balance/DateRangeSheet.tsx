@@ -1,17 +1,19 @@
 import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import { Animated, Easing, Pressable, StyleSheet, View } from 'react-native';
 import {
-  WEEKDAYS,
-  MONTHS,
+  type CalendarCell,
+  type DateKey,
+  type DateRange,
   daysInRange,
   formatDay,
   formatMonth,
   monthGrid,
+  MONTHS,
   parseKey,
+  t,
+  tn,
   toKey,
-  type CalendarCell,
-  type DateKey,
-  type DateRange,
+  WEEKDAYS,
 } from '@yourtime/shared-utils';
 import { Button, Icon, PressableScale, Sheet, Text } from '@/components/ui';
 import { haptics } from '@/lib/haptics';
@@ -86,24 +88,24 @@ export function DateRangeSheet({ visible, onClose, value, today, onApply }: Date
 
   const summary =
     from === null
-      ? 'Elige el primer día'
+      ? t('Elige el primer día')
       : to === null
-        ? 'Ahora elige el último día, o aplica solo este'
-        : `${daysInRange(from, to)} ${daysInRange(from, to) === 1 ? 'día' : 'días'}`;
+        ? t('Ahora elige el último día, o aplica solo este')
+        : tn(daysInRange(from, to), '{count} día', '{count} días');
 
   return (
-    <Sheet visible={visible} onClose={onClose} title="Elegir periodo" scroll={false}>
+    <Sheet visible={visible} onClose={onClose} title={t('Elegir periodo')} scroll={false}>
       <View style={styles.fields}>
-        <Field label="Desde" value={from} active={picking === 'start'} />
+        <Field label={t('Desde')} value={from} active={picking === 'start'} />
         <Icon name="arrow-forward" size={16} color="textSubtle" />
-        <Field label="Hasta" value={to} active={picking === 'end'} />
+        <Field label={t('Hasta')} value={to} active={picking === 'end'} />
       </View>
       <Text variant="caption" tone="muted" accessibilityLiveRegion="polite" style={styles.summary}>
         {summary}
       </Text>
 
       <View style={styles.monthBar}>
-        <NavButton icon="chevron-back" label="Mes anterior" onPress={() => step(-1)} />
+        <NavButton icon="chevron-back" label={t('Mes anterior')} onPress={() => step(-1)} />
         <Text
           variant="heading"
           level={0}
@@ -114,7 +116,7 @@ export function DateRangeSheet({ visible, onClose, value, today, onApply }: Date
         </Text>
         <NavButton
           icon="chevron-forward"
-          label="Mes siguiente"
+          label={t('Mes siguiente')}
           onPress={() => step(1)}
           disabled={viewingCurrentMonth}
         />
@@ -128,7 +130,7 @@ export function DateRangeSheet({ visible, onClose, value, today, onApply }: Date
         {WEEKDAYS.map((d, i) => (
           <View key={i} style={styles.weekday}>
             <Text variant="label" tone="subtle" style={styles.weekdayText}>
-              {d}
+              {t(d)}
             </Text>
           </View>
         ))}
@@ -146,10 +148,10 @@ export function DateRangeSheet({ visible, onClose, value, today, onApply }: Date
 
       <View style={styles.actions}>
         <View style={styles.flex}>
-          <Button label="Cancelar" variant="ghost" onPress={onClose} block />
+          <Button label={t('Cancelar')} variant="ghost" onPress={onClose} block />
         </View>
         <View style={styles.flex}>
-          <Button label="Aplicar" onPress={apply} disabled={from === null} block />
+          <Button label={t('Aplicar')} onPress={apply} disabled={from === null} block />
         </View>
       </View>
     </Sheet>
@@ -174,7 +176,7 @@ function Field({
   return (
     <View
       accessible
-      accessibilityLabel={`${label}: ${value ? formatDay(value) : 'sin elegir'}`}
+      accessibilityLabel={`${label}: ${value ? formatDay(value) : t('sin elegir')}`}
       style={[
         styles.field,
         {
@@ -321,8 +323,16 @@ const Day = memo(function Day({
   const isToday = key === todayKey;
 
   const label =
-    `${cell.day} de ${MONTHS[parseKey(key).getMonth()]} de ${key.slice(0, 4)}` +
-    (isStart && hasSpan ? ', inicio del periodo' : isEnd && hasSpan ? ', fin del periodo' : '') +
+    t('{day} de {month} de {year}', {
+      day: cell.day,
+      month: t(MONTHS[parseKey(key).getMonth()]!),
+      year: key.slice(0, 4),
+    }) +
+    (isStart && hasSpan
+      ? t(', inicio del periodo')
+      : isEnd && hasSpan
+        ? t(', fin del periodo')
+        : '') +
     (isToday ? ', hoy' : '');
 
   return (

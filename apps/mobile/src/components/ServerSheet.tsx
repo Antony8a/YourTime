@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
-import { normalizeServerUrl } from '@yourtime/shared-utils';
+import { normalizeServerUrl, t } from '@yourtime/shared-utils';
 import { checkApiUrl, getApiUrl, getDefaultApiUrl, setApiUrl } from '@/api/client';
 import { useFeedback } from '@/components/feedback/FeedbackProvider';
 import { Button, Input, Sheet, Text } from '@/components/ui';
@@ -21,14 +21,14 @@ export function ServerLink() {
     <>
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={`Servidor ${shortUrl(current)}. Cambiar`}
+        accessibilityLabel={t('Servidor {value}. Cambiar', { value: shortUrl(current) })}
         onPress={() => setOpen(true)}
         style={styles.link}
       >
         <Text variant="caption" tone="subtle" style={styles.center}>
-          Servidor: {shortUrl(current)} ·{' '}
+          {t('Servidor: {address} ·', { address: shortUrl(current) })}{' '}
           <Text variant="caption" tone="primary">
-            Cambiar
+            {t('Cambiar')}
           </Text>
         </Text>
       </Pressable>
@@ -59,7 +59,7 @@ function ServerSheet({ visible, onClose }: { visible: boolean; onClose: () => vo
   const save = async () => {
     const url = normalizeServerUrl(text);
     if (!url) {
-      setError('Escribe una dirección válida, por ejemplo 192.168.1.109');
+      setError(t('Escribe una dirección válida, por ejemplo 192.168.1.109'));
       return;
     }
     setBusy(true);
@@ -68,18 +68,20 @@ function ServerSheet({ visible, onClose }: { visible: boolean; onClose: () => vo
     setBusy(false);
     if (!ok) {
       setError(
-        'No pude conectar. Revisa que el celular esté en el mismo WiFi que el computador y que la API esté encendida.'
+        t(
+          'No pude conectar. Revisa que el celular esté en el mismo WiFi que el computador y que la API esté encendida.'
+        )
       );
       return;
     }
     await setApiUrl(url);
-    toast('Servidor guardado.');
+    toast(t('Servidor guardado.'));
     onClose();
   };
 
   const reset = async () => {
     await setApiUrl(null);
-    toast('Servidor restablecido.');
+    toast(t('Servidor restablecido.'));
     onClose();
   };
 
@@ -87,25 +89,25 @@ function ServerSheet({ visible, onClose }: { visible: boolean; onClose: () => vo
     <Sheet
       visible={visible}
       onClose={onClose}
-      title="Servidor"
-      subtitle="Dónde corre la API de YourTime"
+      title={t('Servidor')}
+      subtitle={t('Dónde corre la API de YourTime')}
     >
       <Input
-        label="Dirección"
+        label={t('Dirección')}
         value={text}
         onChangeText={setText}
         autoCapitalize="none"
         autoCorrect={false}
         keyboardType="url"
         placeholder="192.168.1.109"
-        hint="La IP de tu computador en el WiFi. El puerto 8080 se completa solo."
+        hint={t('La IP de tu computador en el WiFi. El puerto 8080 se completa solo.')}
         error={error}
       />
       <View style={{ gap: space.sm }}>
-        <Button label="Probar y guardar" onPress={() => void save()} loading={busy} block />
+        <Button label={t('Probar y guardar')} onPress={() => void save()} loading={busy} block />
         {getApiUrl() !== getDefaultApiUrl() ? (
           <Button
-            label={`Volver a ${shortUrl(getDefaultApiUrl())}`}
+            label={t('Volver a {value}', { value: shortUrl(getDefaultApiUrl()) })}
             variant="ghost"
             onPress={() => void reset()}
             disabled={busy}

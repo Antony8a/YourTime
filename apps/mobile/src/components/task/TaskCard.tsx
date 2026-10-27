@@ -1,7 +1,7 @@
 import { memo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import type { Task } from '@yourtime/shared-types';
-import { formatBudget, timeAgo } from '@yourtime/shared-utils';
+import { formatBudget, t, timeAgo, tn } from '@yourtime/shared-utils';
 import { ConvertedBudget } from '@/components/money/Converted';
 import { RatingBadge } from '@/components/reviews/Stars';
 import { Badge, Card, Icon, safeIcon, Text } from '@/components/ui';
@@ -35,7 +35,7 @@ function TaskCardImpl({ task, onPress, showOffers = false }: TaskCardProps) {
           </Text>
           <View style={styles.byline}>
             <Text variant="caption" tone="subtle" numberOfLines={1} style={styles.bylineText}>
-              {task.is_owner ? 'Publicada por ti' : task.poster.full_name}
+              {task.is_owner ? t('Publicada por ti') : task.poster.full_name}
             </Text>
             {task.is_owner ? null : <RatingBadge rating={task.poster.rating} />}
             <Text variant="caption" tone="subtle">
@@ -53,25 +53,27 @@ function TaskCardImpl({ task, onPress, showOffers = false }: TaskCardProps) {
       <View style={styles.badges}>
         <DistanceBadge task={task} />
         {task.status !== 'open' ? (
-          <Badge label={taskStatusLabel[task.status]} tone={taskStatusTone[task.status]} />
+          <Badge label={t(taskStatusLabel[task.status])} tone={taskStatusTone[task.status]} />
         ) : null}
         {mine ? (
           <Badge
-            label={`Tu postulación: ${applicationStatusLabel[mine.status]}`}
+            label={t('Tu postulación: {status}', {
+              status: t(applicationStatusLabel[mine.status]),
+            })}
             tone={applicationStatusTone[mine.status]}
             icon="paper-plane-outline"
           />
         ) : null}
         {showOffers && task.applications_count > 0 && task.status === 'open' ? (
           <Badge
-            label={`${task.applications_count} ${task.applications_count === 1 ? 'postulación' : 'postulaciones'}`}
+            label={tn(task.applications_count, '{count} postulación', '{count} postulaciones')}
             tone="primary"
             icon="people-outline"
           />
         ) : null}
         {!showOffers && task.applications_count > 0 && !mine ? (
           <Badge
-            label={`${task.applications_count} ${task.applications_count === 1 ? 'postulado' : 'postulados'}`}
+            label={tn(task.applications_count, '{count} postulado', '{count} postulados')}
             icon="people-outline"
           />
         ) : null}

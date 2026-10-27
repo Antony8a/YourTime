@@ -20,6 +20,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { t } from '@yourtime/shared-utils';
 import { Button, Icon, Sheet, Text, type IconName } from '@/components/ui';
 import { haptics } from '@/lib/haptics';
 import { DURATION, EASE_OUT } from '@/lib/motion';
@@ -105,13 +106,13 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
       >
         <View style={styles.actions}>
           <Button
-            label={shown?.confirmLabel ?? 'Confirmar'}
+            label={shown?.confirmLabel ?? t('Confirmar')}
             variant={shown?.destructive ? 'danger' : 'primary'}
             onPress={() => settle(true)}
             block
           />
           <Button
-            label={shown?.cancelLabel ?? 'Cancelar'}
+            label={shown?.cancelLabel ?? t('Cancelar')}
             variant="ghost"
             onPress={() => settle(false)}
             block

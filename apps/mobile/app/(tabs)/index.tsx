@@ -3,6 +3,8 @@ import { ActivityIndicator, FlatList, Pressable, ScrollView, StyleSheet, View } 
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { Task, TaskListParams, TaskSort } from '@yourtime/shared-types';
+import { t } from '@yourtime/shared-utils';
+import { categoryName } from '@/i18n/categories';
 import { flatten, useCategories, useFeed, useUpdateMe } from '@/api/hooks';
 import { useFeedback } from '@/components/feedback/FeedbackProvider';
 import { TaskCard } from '@/components/task/TaskCard';
@@ -77,8 +79,8 @@ export default function ExploreScreen() {
     updateMe.mutate(
       { location: { latitude: place.latitude, longitude: place.longitude, city: place.city } },
       {
-        onSuccess: () => toast('Ubicación guardada. Ya puedes ver las distancias.'),
-        onError: () => toast('No pudimos guardar tu ubicación.', 'error'),
+        onSuccess: () => toast(t('Ubicación guardada. Ya puedes ver las distancias.')),
+        onError: () => toast(t('No pudimos guardar tu ubicación.'), 'error'),
       }
     );
   }, [locate, updateMe, toast]);
@@ -88,7 +90,7 @@ export default function ExploreScreen() {
       <View style={styles.topRow}>
         <View style={styles.greeting}>
           <Text variant="title" level={1}>
-            Hola, {user?.full_name.split(' ')[0]}
+            {t('Hola, {name}', { name: user?.full_name.split(' ')[0] ?? '' })}
           </Text>
           <Pressable
             accessibilityRole="button"
@@ -97,8 +99,13 @@ export default function ExploreScreen() {
           >
             <Icon name="location-outline" size={14} color="textSubtle" />
             <Text variant="caption" tone="muted">
-              {user?.location?.city || (hasLocation ? 'Ubicación guardada' : 'Sin ubicación')}
-              {radius ? ` · radio de ${radius} km` : ''}
+              {[
+                user?.location?.city ||
+                  (hasLocation ? t('Ubicación guardada') : t('Sin ubicación')),
+                radius ? t('radio de {radius} km', { radius }) : null,
+              ]
+                .filter(Boolean)
+                .join(' · ')}
             </Text>
           </Pressable>
         </View>
@@ -107,7 +114,7 @@ export default function ExploreScreen() {
 
       <Input
         icon="search"
-        placeholder="Busca tareas: plomería, clases, mudanza…"
+        placeholder={t('Busca tareas: plomería, clases, mudanza…')}
         value={search}
         onChangeText={setSearch}
         returnKeyType="search"
@@ -116,7 +123,7 @@ export default function ExploreScreen() {
         right={
           search ? (
             <Pressable
-              accessibilityLabel="Borrar búsqueda"
+              accessibilityLabel={t('Borrar búsqueda')}
               onPress={() => setSearch('')}
               hitSlop={10}
             >
@@ -131,11 +138,11 @@ export default function ExploreScreen() {
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.chips}
       >
-        <Chip label="Todas" selected={!categoryId} onPress={() => setCategoryId(undefined)} />
+        <Chip label={t('Todas')} selected={!categoryId} onPress={() => setCategoryId(undefined)} />
         {categories.data?.map((c) => (
           <Chip
             key={c.id}
-            label={c.name}
+            label={categoryName(c.name)}
             selected={categoryId === c.id}
             accent={c.color}
             onPress={() => setCategoryId(categoryId === c.id ? undefined : c.id)}
@@ -147,7 +154,7 @@ export default function ExploreScreen() {
         {hasLocation && radius ? (
           <Chip
             icon="navigate-outline"
-            label={`Cerca de mí · ${radius} km`}
+            label={t('Cerca de mí · {radius} km', { radius })}
             selected={withinMyRadius && maxDistanceKm == null}
             onPress={() => {
               setMaxDistanceKm(null);
@@ -157,7 +164,9 @@ export default function ExploreScreen() {
         ) : null}
         <Chip
           icon="options-outline"
-          label={activeFilters > 0 ? `Filtros · ${activeFilters}` : 'Filtros'}
+          label={
+            activeFilters > 0 ? t('Filtros · {activeFilters}', { activeFilters }) : t('Filtros')
+          }
           selected={activeFilters > 0}
           onPress={() => setFiltersOpen(true)}
         />
@@ -168,14 +177,14 @@ export default function ExploreScreen() {
           <View style={styles.banner}>
             <Icon name="location" size={22} color="primary" />
             <View style={styles.bannerText}>
-              <Text variant="bodyStrong">Mira qué tan lejos queda cada tarea</Text>
+              <Text variant="bodyStrong">{t('Mira qué tan lejos queda cada tarea')}</Text>
               <Text variant="caption" tone="muted">
-                Guarda tu ubicación. Es solo una guía: tú decides a cuáles postularte.
+                {t('Guarda tu ubicación. Es solo una guía: tú decides a cuáles postularte.')}
               </Text>
             </View>
           </View>
           <Button
-            label="Usar mi ubicación"
+            label={t('Usar mi ubicación')}
             icon="locate"
             size="sm"
             onPress={() => void saveCurrentLocation()}
@@ -224,19 +233,19 @@ export default function ExploreScreen() {
           ) : feed.isError ? (
             <EmptyState
               icon="cloud-offline-outline"
-              title="No pudimos cargar las tareas"
-              message="Revisa tu conexión e inténtalo otra vez."
-              actionLabel="Reintentar"
+              title={t('No pudimos cargar las tareas')}
+              message={t('Revisa tu conexión e inténtalo otra vez.')}
+              actionLabel={t('Reintentar')}
               onAction={() => void feed.refetch()}
             />
           ) : (
             <EmptyState
               icon="search-outline"
-              title="No hay tareas con estos filtros"
-              message="Prueba con otra búsqueda, otra categoría o amplía la distancia."
+              title={t('No hay tareas con estos filtros')}
+              message={t('Prueba con otra búsqueda, otra categoría o amplía la distancia.')}
               actionLabel={
                 activeFilters > 0 || withinMyRadius || q || categoryId
-                  ? 'Limpiar filtros'
+                  ? t('Limpiar filtros')
                   : undefined
               }
               onAction={() => {
@@ -259,23 +268,23 @@ export default function ExploreScreen() {
       <Sheet
         visible={filtersOpen}
         onClose={() => setFiltersOpen(false)}
-        title="Filtros"
-        subtitle="Afinan la lista; nunca te impiden postularte."
+        title={t('Filtros')}
+        subtitle={t('Afinan la lista; nunca te impiden postularte.')}
       >
         {hasLocation ? (
           <>
             <View style={styles.sheetSection}>
-              <Text variant="bodyStrong">Distancia máxima</Text>
+              <Text variant="bodyStrong">{t('Distancia máxima')}</Text>
               <View style={styles.wrap}>
                 <Chip
-                  label="Sin límite"
+                  label={t('Sin límite')}
                   selected={maxDistanceKm == null}
                   onPress={() => setMaxDistanceKm(null)}
                 />
                 {DISTANCE_OPTIONS.map((km) => (
                   <Chip
                     key={km}
-                    label={`${km} km`}
+                    label={t('{km} km', { km })}
                     selected={maxDistanceKm === km}
                     onPress={() => {
                       setWithinMyRadius(false);
@@ -285,19 +294,19 @@ export default function ExploreScreen() {
                 ))}
               </View>
               <Text variant="caption" tone="subtle">
-                Las tareas remotas siempre se muestran.
+                {t('Las tareas remotas siempre se muestran.')}
               </Text>
             </View>
             <View style={styles.sheetSection}>
-              <Text variant="bodyStrong">Ordenar por</Text>
+              <Text variant="bodyStrong">{t('Ordenar por')}</Text>
               <View style={styles.wrap}>
                 <Chip
-                  label="Más recientes"
+                  label={t('Más recientes')}
                   selected={sort === 'recent'}
                   onPress={() => setSort('recent')}
                 />
                 <Chip
-                  label="Más cercanas"
+                  label={t('Más cercanas')}
                   selected={sort === 'distance'}
                   onPress={() => setSort('distance')}
                 />
@@ -305,9 +314,9 @@ export default function ExploreScreen() {
             </View>
           </>
         ) : (
-          <Text tone="muted">Guarda tu ubicación para filtrar y ordenar por distancia.</Text>
+          <Text tone="muted">{t('Guarda tu ubicación para filtrar y ordenar por distancia.')}</Text>
         )}
-        <Button label="Listo" onPress={() => setFiltersOpen(false)} block />
+        <Button label={t('Listo')} onPress={() => setFiltersOpen(false)} block />
       </Sheet>
     </View>
   );

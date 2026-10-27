@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { useReducedMotion } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { t } from '@yourtime/shared-utils';
 import { DURATION, ENTER_OFFSET } from '@/lib/motion';
 import { useTheme } from '@/theme/ThemeProvider';
 import { radius, space } from '@/theme/tokens';
@@ -92,7 +93,7 @@ export function Sheet({ visible, onClose, title, subtitle, children, scroll = tr
       >
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Cerrar"
+          accessibilityLabel={t('Cerrar')}
           style={StyleSheet.absoluteFill}
           onPress={onClose}
         />

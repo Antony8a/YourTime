@@ -1,4 +1,5 @@
 import { LinearGradient } from 'expo-linear-gradient';
+import { t } from '@yourtime/shared-utils';
 import { Icon } from '@/components/ui';
 import { useTheme } from '@/theme/ThemeProvider';
 
@@ -7,7 +8,7 @@ export function BrandMark({ size = 56 }: { size?: number }) {
   const { isDark, shadow } = useTheme();
   return (
     <LinearGradient
-      accessibilityLabel="YourTime"
+      accessibilityLabel={t('YourTime')}
       colors={isDark ? ['#8B93FA', '#6366F1'] : ['#6366F1', '#4338CA']}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}

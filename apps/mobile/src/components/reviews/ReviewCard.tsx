@@ -1,6 +1,6 @@
 import { StyleSheet, View } from 'react-native';
 import type { Review } from '@yourtime/shared-types';
-import { timeAgo } from '@yourtime/shared-utils';
+import { t, timeAgo } from '@yourtime/shared-utils';
 import { Avatar, Button, Card, Text } from '@/components/ui';
 import { useTheme } from '@/theme/ThemeProvider';
 import { radius, space } from '@/theme/tokens';
@@ -45,7 +45,10 @@ export function ReviewCard({
           <View
             style={styles.stars}
             accessible
-            accessibilityLabel={`${review.rating} de 5 estrellas, ${starLabel(review.rating)}`}
+            accessibilityLabel={t('{rating} de 5 estrellas, {value}', {
+              rating: review.rating,
+              value: starLabel(review.rating),
+            })}
           >
             <StarRow value={review.rating} size={15} />
             <Text variant="caption" tone="subtle">
@@ -57,7 +60,7 @@ export function ReviewCard({
 
       {review.task_title ? (
         <Text variant="caption" tone="subtle" style={styles.task} numberOfLines={1}>
-          Por: {review.task_title}
+          {t('Por: {title}', { title: review.task_title })}
         </Text>
       ) : null}
 
@@ -67,7 +70,7 @@ export function ReviewCard({
         </Text>
       ) : (
         <Text tone="subtle" style={styles.comment}>
-          Sin comentario.
+          {t('Sin comentario.')}
         </Text>
       )}
 
@@ -87,7 +90,7 @@ export function ReviewCard({
       ) : onReply ? (
         <View style={styles.replyAction}>
           <Button
-            label="Responder"
+            label={t('Responder')}
             icon="chatbubble-outline"
             variant="secondary"
             size="sm"

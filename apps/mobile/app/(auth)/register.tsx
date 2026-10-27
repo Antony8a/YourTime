@@ -1,11 +1,12 @@
 import { useMemo, useRef, useState } from 'react';
 import { Pressable, StyleSheet, View, type TextInput } from 'react-native';
 import { Link } from 'expo-router';
-import { SUPPORTED_CURRENCIES } from '@yourtime/shared-utils';
+import { getLocale, SUPPORTED_CURRENCIES, t } from '@yourtime/shared-utils';
 import { ApiError } from '@/api/client';
 import { useRegister } from '@/api/hooks';
 import { BrandMark } from '@/components/BrandMark';
 import { CurrencyPicker } from '@/components/profile/CurrencyPicker';
+import { LanguageLink } from '@/components/profile/LanguagePicker';
 import { ServerLink } from '@/components/ServerSheet';
 import { Button, Card, Icon, Input, Screen, Text } from '@/components/ui';
 import { guessCurrency } from '@/lib/messages';
@@ -26,29 +27,36 @@ export default function RegisterScreen() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState<string>();
 
-  const currencyName = useMemo(
-    () => SUPPORTED_CURRENCIES.find((c) => c.code === currency)?.name,
-    [currency]
-  );
+  const currencyName = useMemo(() => {
+    const name = SUPPORTED_CURRENCIES.find((c) => c.code === currency)?.name;
+    return name ? t(name) : undefined;
+  }, [currency]);
 
   const submit = () => {
     const local: Record<string, string> = {};
-    if (!fullName.trim()) local.full_name = 'Cuéntanos cómo te llamas.';
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) local.email = 'Escribe un correo válido.';
-    if (password.length < 8) local.password = 'Usa al menos 8 caracteres.';
+    if (!fullName.trim()) local.full_name = t('Cuéntanos cómo te llamas.');
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()))
+      local.email = t('Escribe un correo válido.');
+    if (password.length < 8) local.password = t('Usa al menos 8 caracteres.');
     setErrors(local);
     setFormError(undefined);
     if (Object.keys(local).length > 0) return;
 
     register.mutate(
-      { full_name: fullName.trim(), email: email.trim(), password, currency },
+      {
+        full_name: fullName.trim(),
+        email: email.trim(),
+        password,
+        currency,
+        language: getLocale(),
+      },
       {
         onError: (e) => {
           if (e instanceof ApiError) {
             setErrors(e.fieldErrors);
             if (e.code === 'email_taken') setErrors({ email: e.message });
             else if (Object.keys(e.fieldErrors).length === 0) setFormError(e.message);
-          } else setFormError('No pudimos crear tu cuenta.');
+          } else setFormError(t('No pudimos crear tu cuenta.'));
         },
       }
     );
@@ -58,13 +66,15 @@ export default function RegisterScreen() {
     <Screen>
       <View style={styles.hero}>
         <BrandMark size={56} />
-        <Text variant="display">Crea tu cuenta</Text>
-        <Text tone="muted">Es gratis. Publica lo que necesitas o ayuda a otros y gana tiempo.</Text>
+        <Text variant="display">{t('Crea tu cuenta')}</Text>
+        <Text tone="muted">
+          {t('Es gratis. Publica lo que necesitas o ayuda a otros y gana tiempo.')}
+        </Text>
       </View>
 
       <View style={styles.form}>
         <Input
-          label="Nombre completo"
+          label={t('Nombre completo')}
           icon="person-outline"
           value={fullName}
           onChangeText={setFullName}
@@ -73,11 +83,11 @@ export default function RegisterScreen() {
           returnKeyType="next"
           onSubmitEditing={() => emailRef.current?.focus()}
           error={errors.full_name}
-          placeholder="Ana Restrepo"
+          placeholder={t('Ana Restrepo')}
         />
         <Input
           ref={emailRef}
-          label="Correo electrónico"
+          label={t('Correo electrónico')}
           icon="mail-outline"
           value={email}
           onChangeText={setEmail}
@@ -92,7 +102,7 @@ export default function RegisterScreen() {
         />
         <Input
           ref={passwordRef}
-          label="Contraseña"
+          label={t('Contraseña')}
           icon="lock-closed-outline"
           value={password}
           onChangeText={setPassword}
@@ -102,17 +112,17 @@ export default function RegisterScreen() {
           returnKeyType="go"
           onSubmitEditing={submit}
           error={errors.password}
-          hint="Mínimo 8 caracteres."
-          placeholder="Crea una contraseña"
+          hint={t('Mínimo 8 caracteres.')}
+          placeholder={t('Crea una contraseña')}
         />
 
         <View style={styles.currencyBlock}>
           <Text variant="caption" tone="muted" style={styles.currencyLabel}>
-            Moneda de tu cuenta
+            {t('Moneda de tu cuenta')}
           </Text>
           <Card
             onPress={() => setPickingCurrency(true)}
-            accessibilityLabel={`Moneda ${currency}. Cambiar`}
+            accessibilityLabel={t('Moneda {currency}. Cambiar', { currency })}
             padded={false}
           >
             <View style={styles.currencyRow}>
@@ -124,7 +134,7 @@ export default function RegisterScreen() {
               <View style={styles.currencyText}>
                 <Text variant="bodyStrong">{currencyName ?? currency}</Text>
                 <Text variant="caption" tone="subtle">
-                  Verás y publicarás precios en esta moneda.
+                  {t('Verás y publicarás precios en esta moneda.')}
                 </Text>
               </View>
               <Icon name="chevron-forward" size={18} color="textSubtle" />
@@ -137,20 +147,21 @@ export default function RegisterScreen() {
             {formError}
           </Text>
         ) : null}
-        <Button label="Crear cuenta" onPress={submit} loading={register.isPending} block />
+        <Button label={t('Crear cuenta')} onPress={submit} loading={register.isPending} block />
       </View>
 
       <View style={styles.footer}>
-        <Text tone="muted">¿Ya tienes cuenta?</Text>
+        <Text tone="muted">{t('¿Ya tienes cuenta?')}</Text>
         <Link href="/login" asChild>
           <Pressable accessibilityRole="link" style={styles.linkTouch}>
             <Text tone="primary" style={styles.link}>
-              Ingresar
+              {t('Ingresar')}
             </Text>
           </Pressable>
         </Link>
       </View>
 
+      <LanguageLink />
       <ServerLink />
 
       <CurrencyPicker

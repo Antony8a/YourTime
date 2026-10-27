@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
-import { SUPPORTED_CURRENCIES } from '@yourtime/shared-utils';
+import { LOCALES, SUPPORTED_CURRENCIES, t, tn } from '@yourtime/shared-utils';
 import { ApiError } from '@/api/client';
 import { useUpdateMe } from '@/api/hooks';
 import { useFeedback } from '@/components/feedback/FeedbackProvider';
 import { CurrencyPicker } from '@/components/profile/CurrencyPicker';
+import { LanguagePicker } from '@/components/profile/LanguagePicker';
+import { followDeviceLanguage, rememberLanguage } from '@/i18n';
 import { RatingBadge } from '@/components/reviews/Stars';
 import {
   Avatar,
@@ -35,14 +37,18 @@ export default function ProfileScreen() {
   const updateMe = useUpdateMe();
   const { locate, locating } = useDeviceLocation();
 
-  const [sheet, setSheet] = useState<'currency' | 'radius' | 'edit' | null>(null);
+  const [sheet, setSheet] = useState<'currency' | 'language' | 'radius' | 'edit' | null>(null);
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [bio, setBio] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   if (!user) return null;
-  const currencyName = SUPPORTED_CURRENCIES.find((c) => c.code === user.currency)?.name;
+  const currencyKey = SUPPORTED_CURRENCIES.find((c) => c.code === user.currency)?.name;
+  const currencyName = currencyKey ? t(currencyKey) : undefined;
+  const languageName = user.language
+    ? (LOCALES.find((l) => l.code === user.language)?.name ?? user.language)
+    : t('Idioma del dispositivo');
 
   const save = (
     body: Parameters<typeof updateMe.mutate>[0],
@@ -57,7 +63,7 @@ export default function ProfileScreen() {
       onError: (e) => {
         if (e instanceof ApiError && Object.keys(e.fieldErrors).length > 0)
           setErrors(e.fieldErrors);
-        else toast(e instanceof ApiError ? e.message : 'No pudimos guardar el cambio.', 'error');
+        else toast(e instanceof ApiError ? e.message : t('No pudimos guardar el cambio.'), 'error');
       },
     });
 
@@ -71,14 +77,14 @@ export default function ProfileScreen() {
 
   const updateLocation = async () => {
     const place = await locate();
-    if (place) save({ location: place }, 'Ubicación actualizada.');
+    if (place) save({ location: place }, t('Ubicación actualizada.'));
   };
 
   const logout = async () => {
     const ok = await confirm({
-      title: 'Cerrar sesión',
-      message: 'Tendrás que ingresar de nuevo para ver tus tareas.',
-      confirmLabel: 'Cerrar sesión',
+      title: t('Cerrar sesión'),
+      message: t('Tendrás que ingresar de nuevo para ver tus tareas.'),
+      confirmLabel: t('Cerrar sesión'),
       destructive: true,
     });
     if (ok) await signOut();
@@ -97,70 +103,78 @@ export default function ProfileScreen() {
         </View>
       </View>
 
-      <Section title="Preferencias">
+      <Section title={t('Preferencias')}>
         <Row
           icon="cash-outline"
-          title="Moneda"
+          title={t('Moneda')}
           value={`${user.currency}${currencyName ? ` · ${currencyName}` : ''}`}
           onPress={() => setSheet('currency')}
         />
         <Divider />
         <Row
+          icon="language-outline"
+          title={t('Idioma')}
+          value={languageName}
+          onPress={() => setSheet('language')}
+        />
+        <Divider />
+        <Row
           icon="location-outline"
-          title="Mi ubicación"
-          value={user.location ? user.location.city || 'Guardada' : 'Sin configurar'}
+          title={t('Mi ubicación')}
+          value={user.location ? user.location.city || t('Guardada') : t('Sin configurar')}
           action={
             locating || updateMe.isPending
-              ? 'Buscando…'
+              ? t('Buscando…')
               : user.location
-                ? 'Actualizar'
-                : 'Configurar'
+                ? t('Actualizar')
+                : t('Configurar')
           }
           onPress={() => void updateLocation()}
         />
         <Divider />
         <Row
           icon="navigate-outline"
-          title="Radio preferido"
-          value={user.search_radius_km ? `${user.search_radius_km} km` : 'Sin límite'}
+          title={t('Radio preferido')}
+          value={user.search_radius_km ? `${user.search_radius_km} km` : t('Sin límite')}
           onPress={() => setSheet('radius')}
         />
       </Section>
       <Text variant="caption" tone="subtle" style={styles.note}>
-        Tu ubicación y radio solo sirven de guía: te muestran qué tan lejos queda cada tarea, pero
-        nunca te impiden postularte. Tú decides.
+        {t(
+          'Tu ubicación y radio solo sirven de guía: te muestran qué tan lejos queda cada tarea, pero nunca te impiden postularte. Tú decides.'
+        )}
       </Text>
 
-      <Section title="Cuenta">
+      <Section title={t('Cuenta')}>
         <Row
           icon="star-outline"
-          title="Mis reseñas"
+          title={t('Mis reseñas')}
           value={
             user.rating.count > 0
-              ? `${user.rating.count} ${user.rating.count === 1 ? 'calificación' : 'calificaciones'}`
-              : 'Aún sin calificaciones'
+              ? tn(user.rating.count, '{count} calificación', '{count} calificaciones')
+              : t('Aún sin calificaciones')
           }
           onPress={() => router.push({ pathname: '/user/[id]', params: { id: user.id } })}
         />
         <Divider />
         <Row
           icon="wallet-outline"
-          title="Mi balance"
-          value="Lo que ganaste y lo que gastaste"
+          title={t('Mi balance')}
+          value={t('Lo que ganaste y lo que gastaste')}
           onPress={() => router.push('/balance')}
         />
         <Divider />
         <Row
           icon="create-outline"
-          title="Editar perfil"
-          value={user.phone ?? 'Nombre, teléfono y presentación'}
+          title={t('Editar perfil')}
+          value={user.phone ?? t('Nombre, teléfono y presentación')}
           onPress={openEdit}
         />
       </Section>
 
       <View style={styles.logout}>
         <Button
-          label="Cerrar sesión"
+          label={t('Cerrar sesión')}
           icon="log-out-outline"
           variant="secondary"
           onPress={() => void logout()}
@@ -168,73 +182,93 @@ export default function ProfileScreen() {
         />
       </View>
 
+      <LanguagePicker
+        visible={sheet === 'language'}
+        onClose={() => setSheet(null)}
+        followsDevice={!user.language}
+        onSelect={(locale) => {
+          // The screens start over in the new language, so this one will not be around to
+          // show a confirmation; the change itself is the feedback.
+          if (locale) void rememberLanguage(locale);
+          else void followDeviceLanguage();
+          updateMe.mutate({ language: locale ?? '' });
+        }}
+      />
+
       <CurrencyPicker
         visible={sheet === 'currency'}
         selected={user.currency}
         onClose={() => setSheet(null)}
         onSelect={(code) =>
-          code !== user.currency && save({ currency: code }, `Moneda cambiada a ${code}.`)
+          code !== user.currency &&
+          save({ currency: code }, t('Moneda cambiada a {code}.', { code }))
         }
       />
 
       <Sheet
         visible={sheet === 'radius'}
         onClose={() => setSheet(null)}
-        title="Radio preferido"
-        subtitle="Distancia que consideras razonable. Resalta las tareas que quedan fuera, sin bloquearlas."
+        title={t('Radio preferido')}
+        subtitle={t(
+          'Distancia que consideras razonable. Resalta las tareas que quedan fuera, sin bloquearlas.'
+        )}
       >
         <View style={styles.wrap}>
           <Chip
-            label="Sin límite"
+            label={t('Sin límite')}
             selected={!user.search_radius_km}
-            onPress={() => save({ search_radius_km: null }, 'Radio quitado.', () => setSheet(null))}
+            onPress={() =>
+              save({ search_radius_km: null }, t('Radio quitado.'), () => setSheet(null))
+            }
           />
           {RADIUS_OPTIONS.map((km) => (
             <Chip
               key={km}
-              label={`${km} km`}
+              label={t('{km} km', { km })}
               selected={user.search_radius_km === km}
               onPress={() =>
-                save({ search_radius_km: km }, `Radio de ${km} km guardado.`, () => setSheet(null))
+                save({ search_radius_km: km }, t('Radio de {km} km guardado.', { km }), () =>
+                  setSheet(null)
+                )
               }
             />
           ))}
         </View>
         {!user.location ? (
           <Text variant="caption" tone="warning">
-            Guarda tu ubicación para que el radio tenga efecto.
+            {t('Guarda tu ubicación para que el radio tenga efecto.')}
           </Text>
         ) : null}
       </Sheet>
 
-      <Sheet visible={sheet === 'edit'} onClose={() => setSheet(null)} title="Editar perfil">
+      <Sheet visible={sheet === 'edit'} onClose={() => setSheet(null)} title={t('Editar perfil')}>
         <Input
-          label="Nombre completo"
+          label={t('Nombre completo')}
           value={name}
           onChangeText={setName}
           autoCapitalize="words"
           error={errors.full_name}
         />
         <Input
-          label="Teléfono (opcional)"
+          label={t('Teléfono (opcional)')}
           value={phone}
           onChangeText={setPhone}
           keyboardType="phone-pad"
           placeholder="+573001234567"
-          hint="Solo lo verá la persona con la que acuerdes una tarea."
+          hint={t('Solo lo verá la persona con la que acuerdes una tarea.')}
           error={errors.phone}
         />
         <Input
-          label="Presentación (opcional)"
+          label={t('Presentación (opcional)')}
           value={bio}
           onChangeText={setBio}
           multiline
           maxLength={1000}
-          placeholder="Cuéntales en qué eres bueno."
+          placeholder={t('Cuéntales en qué eres bueno.')}
           error={errors.bio}
         />
         <Button
-          label="Guardar"
+          label={t('Guardar')}
           loading={updateMe.isPending}
           block
           onPress={() => {
@@ -247,7 +281,7 @@ export default function ProfileScreen() {
                   ? { phone: phone.trim() }
                   : {}),
               },
-              'Perfil actualizado.',
+              t('Perfil actualizado.'),
               () => setSheet(null)
             );
           }}
@@ -257,7 +291,7 @@ export default function ProfileScreen() {
       <View style={styles.footerMark}>
         <Icon name="time" size={14} color={colors.textSubtle} />
         <Text variant="caption" tone="subtle">
-          YourTime
+          {t('YourTime')}
         </Text>
       </View>
     </Screen>

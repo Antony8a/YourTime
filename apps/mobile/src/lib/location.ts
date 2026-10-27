@@ -1,5 +1,6 @@
 import * as Location from 'expo-location';
 
+import { t } from '@yourtime/shared-utils';
 export interface Place {
   latitude: number;
   longitude: number;
@@ -21,7 +22,7 @@ export async function getCurrentPlace(): Promise<Place> {
   const permission = await Location.requestForegroundPermissionsAsync();
   if (permission.status !== 'granted') {
     throw new LocationError(
-      'Necesitamos permiso para usar tu ubicación. Puedes activarlo en los ajustes.',
+      t('Necesitamos permiso para usar tu ubicación. Puedes activarlo en los ajustes.'),
       'denied'
     );
   }
@@ -31,7 +32,7 @@ export async function getCurrentPlace(): Promise<Place> {
     position = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
   } catch {
     throw new LocationError(
-      'No pudimos obtener tu ubicación. Revisa que el GPS esté activo.',
+      t('No pudimos obtener tu ubicación. Revisa que el GPS esté activo.'),
       'unavailable'
     );
   }

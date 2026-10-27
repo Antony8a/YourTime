@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
-import { SUPPORTED_CURRENCIES } from '@yourtime/shared-utils';
+import { SUPPORTED_CURRENCIES, t } from '@yourtime/shared-utils';
 import { Icon, Input, Sheet, Text } from '@/components/ui';
 import { useTheme } from '@/theme/ThemeProvider';
 import { radius, space } from '@/theme/tokens';
@@ -21,7 +21,7 @@ export function CurrencyPicker({ visible, selected, onSelect, onClose }: Currenc
     const q = query.trim().toLowerCase();
     if (!q) return SUPPORTED_CURRENCIES;
     return SUPPORTED_CURRENCIES.filter(
-      (c) => c.code.toLowerCase().includes(q) || c.name.toLowerCase().includes(q)
+      (c) => c.code.toLowerCase().includes(q) || t(c.name).toLowerCase().includes(q)
     );
   }, [query]);
 
@@ -29,12 +29,12 @@ export function CurrencyPicker({ visible, selected, onSelect, onClose }: Currenc
     <Sheet
       visible={visible}
       onClose={onClose}
-      title="Moneda de tu cuenta"
-      subtitle="Se usa para mostrar y publicar precios."
+      title={t('Moneda de tu cuenta')}
+      subtitle={t('Se usa para mostrar y publicar precios.')}
     >
       <Input
         icon="search"
-        placeholder="Buscar moneda"
+        placeholder={t('Buscar moneda')}
         value={query}
         onChangeText={setQuery}
         autoCapitalize="none"
@@ -67,7 +67,7 @@ export function CurrencyPicker({ visible, selected, onSelect, onClose }: Currenc
                 {c.code}
               </Text>
               <Text tone="muted" style={styles.name}>
-                {c.name}
+                {t(c.name)}
               </Text>
               {active ? <Icon name="checkmark-circle" size={20} color="primary" /> : null}
             </Pressable>
@@ -75,7 +75,7 @@ export function CurrencyPicker({ visible, selected, onSelect, onClose }: Currenc
         })}
         {results.length === 0 ? (
           <Text tone="muted" style={styles.empty}>
-            No encontramos esa moneda.
+            {t('No encontramos esa moneda.')}
           </Text>
         ) : null}
       </View>

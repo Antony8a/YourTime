@@ -3,6 +3,7 @@ import { StyleSheet, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams } from 'expo-router';
 import type { Review } from '@yourtime/shared-types';
+import { intlLocale, t, tn } from '@yourtime/shared-utils';
 import { ApiError } from '@/api/client';
 import { flatten, useProfile, useUserReviews } from '@/api/hooks';
 import { ScreenHeader } from '@/components/ScreenHeader';
@@ -30,7 +31,7 @@ export default function UserProfileScreen() {
   if (profile.isLoading) {
     return (
       <View style={styles.flex}>
-        <ScreenHeader title="Perfil" />
+        <ScreenHeader title={t('Perfil')} />
         <Screen noTopInset>
           <View style={{ gap: space.md }}>
             <Skeleton height={150} />
@@ -44,16 +45,16 @@ export default function UserProfileScreen() {
   if (profile.isError || !profile.data) {
     return (
       <View style={styles.flex}>
-        <ScreenHeader title="Perfil" />
+        <ScreenHeader title={t('Perfil')} />
         <Screen noTopInset>
           <EmptyState
             icon="person-outline"
             title={
               profile.error instanceof ApiError && profile.error.status === 404
-                ? 'Este perfil no está disponible'
-                : 'No pudimos cargar el perfil'
+                ? t('Este perfil no está disponible')
+                : t('No pudimos cargar el perfil')
             }
-            actionLabel="Reintentar"
+            actionLabel={t('Reintentar')}
             onAction={() => void profile.refetch()}
           />
         </Screen>
@@ -62,13 +63,13 @@ export default function UserProfileScreen() {
   }
 
   const p = profile.data;
-  const since = new Intl.DateTimeFormat('es', { month: 'long', year: 'numeric' }).format(
+  const since = new Intl.DateTimeFormat(intlLocale(), { month: 'long', year: 'numeric' }).format(
     new Date(p.member_since)
   );
 
   return (
     <View style={styles.flex}>
-      <ScreenHeader title={isMe ? 'Mi perfil' : 'Perfil'} />
+      <ScreenHeader title={isMe ? t('Mi perfil') : t('Perfil')} />
       <Screen noTopInset>
         <LinearGradient
           colors={[colors.primarySoft, colors.surface]}
@@ -81,26 +82,31 @@ export default function UserProfileScreen() {
             {p.full_name}
           </Text>
           <Text variant="caption" tone="muted">
-            Miembro desde {since}
+            {t('Miembro desde {date}', { date: since })}
           </Text>
 
           {p.rating.count > 0 ? (
             <View
               style={styles.score}
               accessible
-              accessibilityLabel={`Calificación ${formatAverage(p.rating.average)} de 5, según ${p.rating.count} ${p.rating.count === 1 ? 'persona' : 'personas'}`}
+              accessibilityLabel={tn(
+                p.rating.count,
+                'Calificación {average} de 5, según {count} persona',
+                'Calificación {average} de 5, según {count} personas',
+                { average: formatAverage(p.rating.average) }
+              )}
             >
               <Text style={styles.scoreNumber}>{formatAverage(p.rating.average)}</Text>
               <View style={styles.scoreSide}>
                 <StarRow value={p.rating.average} size={18} />
                 <Text variant="caption" tone="muted">
-                  {p.rating.count} {p.rating.count === 1 ? 'calificación' : 'calificaciones'}
+                  {tn(p.rating.count, '{count} calificación', '{count} calificaciones')}
                 </Text>
               </View>
             </View>
           ) : (
             <Text tone="muted" style={styles.center}>
-              Aún no tiene calificaciones.
+              {t('Aún no tiene calificaciones.')}
             </Text>
           )}
 
@@ -112,32 +118,35 @@ export default function UserProfileScreen() {
         </LinearGradient>
 
         <View style={styles.section}>
-          <Text variant="heading">Cómo trabaja</Text>
+          <Text variant="heading">{t('Cómo trabaja')}</Text>
           <ReliabilityFacts
             reliability={p.reliability}
             emptyLabel={
               isMe
-                ? 'Cuando termines servicios, aquí verás qué tan rápido sales y si llegas a tiempo.'
-                : 'Aún no ha realizado servicios.'
+                ? t(
+                    'Cuando termines servicios, aquí verás qué tan rápido sales y si llegas a tiempo.'
+                  )
+                : t('Aún no ha realizado servicios.')
             }
           />
           {p.reliability.on_time_total > 0 ? (
             <Text variant="caption" tone="subtle">
-              La puntualidad solo cuenta servicios presenciales con hora acordada, y es justa: no se
-              penaliza el tráfico si salió a tiempo ni si lo eligieron sin tiempo para llegar.
+              {t(
+                'La puntualidad solo cuenta servicios presenciales con hora acordada, y es justa: no se penaliza el tráfico si salió a tiempo ni si lo eligieron sin tiempo para llegar.'
+              )}
             </Text>
           ) : null}
         </View>
 
         <View style={styles.section}>
-          <Text variant="heading">Reseñas</Text>
+          <Text variant="heading">{t('Reseñas')}</Text>
           {reviews.isLoading ? (
             <Skeleton height={110} />
           ) : list.length === 0 ? (
             <Text tone="muted">
               {isMe
-                ? 'Cuando alguien te califique al finalizar una tarea, lo verás aquí.'
-                : 'Todavía no tiene reseñas.'}
+                ? t('Cuando alguien te califique al finalizar una tarea, lo verás aquí.')
+                : t('Todavía no tiene reseñas.')}
             </Text>
           ) : (
             list.map((r) => (
@@ -145,14 +154,14 @@ export default function UserProfileScreen() {
                 key={r.id}
                 review={r}
                 showReviewer
-                replyLabel={`Respuesta de ${p.full_name}`}
+                replyLabel={t('Respuesta de {full_name}', { full_name: p.full_name })}
                 onReply={isMe && !r.reply ? () => setReplyTo(r) : undefined}
               />
             ))
           )}
           {reviews.hasNextPage ? (
             <Button
-              label="Ver más reseñas"
+              label={t('Ver más reseñas')}
               variant="secondary"
               onPress={() => void reviews.fetchNextPage()}
               loading={reviews.isFetchingNextPage}

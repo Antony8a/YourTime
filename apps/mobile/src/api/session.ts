@@ -1,5 +1,6 @@
 import type { User } from '@yourtime/shared-types';
 import { useAuth } from '@/store/auth';
+import { initLanguage } from '@/i18n';
 import { api, ApiError, loadSavedApiUrl } from './client';
 
 /**
@@ -7,7 +8,7 @@ import { api, ApiError, loadSavedApiUrl } from './client';
  * because it needs the API client and the client already depends on the store.
  */
 export async function bootstrapSession(): Promise<void> {
-  await loadSavedApiUrl();
+  await Promise.all([loadSavedApiUrl(), initLanguage()]);
   const { restoreTokens, signOut } = useAuth.getState();
   if (!(await restoreTokens())) return;
 

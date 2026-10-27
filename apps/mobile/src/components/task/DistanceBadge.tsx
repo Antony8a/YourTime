@@ -1,5 +1,5 @@
 import type { Task } from '@yourtime/shared-types';
-import { formatDistance } from '@yourtime/shared-utils';
+import { formatDistance, t } from '@yourtime/shared-utils';
 import { Badge } from '@/components/ui';
 
 /**
@@ -11,10 +11,10 @@ export function DistanceBadge({
 }: {
   task: Pick<Task, 'is_remote' | 'distance_km' | 'within_preferred_radius'>;
 }) {
-  if (task.is_remote) return <Badge label="Remoto" icon="globe-outline" tone="info" />;
+  if (task.is_remote) return <Badge label={t('Remoto')} icon="globe-outline" tone="info" />;
   if (task.distance_km == null) return null;
 
-  const label = `A ${formatDistance(task.distance_km)}`;
+  const label = t('A {distance}', { distance: formatDistance(task.distance_km) });
   if (task.within_preferred_radius === true)
     return <Badge label={label} icon="navigate-outline" tone="success" />;
   if (task.within_preferred_radius === false)

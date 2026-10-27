@@ -10,6 +10,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useRouter } from 'expo-router';
 import type { Task } from '@yourtime/shared-types';
+import { t } from '@yourtime/shared-utils';
 import { useActiveServices } from '@/api/hooks';
 import { Icon, PressableScale, Text } from '@/components/ui';
 import { taskStatusLabel } from '@/lib/messages';
@@ -26,8 +27,8 @@ export function ServiceBanner() {
   if (tasks.length === 0) return null;
   return (
     <View style={styles.stack}>
-      {tasks.map((t) => (
-        <Banner key={t.id} task={t} />
+      {tasks.map((item) => (
+        <Banner key={item.id} task={item} />
       ))}
     </View>
   );
@@ -37,12 +38,16 @@ function Banner({ task }: { task: Task }) {
   const { colors, shadow } = useTheme();
   const router = useRouter();
   const counterpart = task.is_worker ? task.poster : task.assigned_applicant;
-  const role = task.is_worker ? 'Estás haciendo' : 'Estás contratando';
+  const role = task.is_worker ? t('Estás haciendo') : t('Estás contratando');
 
   return (
     <PressableScale
       accessibilityRole="button"
-      accessibilityLabel={`${role}: ${task.title}. ${taskStatusLabel[task.status]}. Abrir servicio`}
+      accessibilityLabel={t('{role}: {title}. {status}. Abrir servicio', {
+        role,
+        title: task.title,
+        status: t(taskStatusLabel[task.status]),
+      })}
       onPress={() => router.push({ pathname: '/service/[id]', params: { id: task.id } })}
       scaleTo={0.985}
       style={[styles.banner, shadow(2), { backgroundColor: colors.primary }]}
@@ -50,7 +55,7 @@ function Banner({ task }: { task: Task }) {
       <LiveDot />
       <View style={styles.text}>
         <Text variant="caption" style={[styles.light, { color: colors.onPrimary, opacity: 0.8 }]}>
-          {role} · {taskStatusLabel[task.status]}
+          {role} · {t(taskStatusLabel[task.status])}
         </Text>
         <Text variant="bodyStrong" numberOfLines={1} style={{ color: colors.onPrimary }}>
           {counterpart?.full_name ?? task.title}

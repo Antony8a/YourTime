@@ -1,4 +1,5 @@
 import { useCallback, useState } from 'react';
+import { t } from '@yourtime/shared-utils';
 import { useFeedback } from '@/components/feedback/FeedbackProvider';
 import { getCurrentPlace, LocationError, type Place } from './location';
 
@@ -16,7 +17,7 @@ export function useDeviceLocation() {
       return await getCurrentPlace();
     } catch (error) {
       toast(
-        error instanceof LocationError ? error.message : 'No pudimos obtener tu ubicación.',
+        error instanceof LocationError ? error.message : t('No pudimos obtener tu ubicación.'),
         'error'
       );
       return null;

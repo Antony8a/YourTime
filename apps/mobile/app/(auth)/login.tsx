@@ -1,9 +1,11 @@
 import { useRef, useState } from 'react';
 import { Pressable, StyleSheet, View, type TextInput } from 'react-native';
 import { Link } from 'expo-router';
+import { t } from '@yourtime/shared-utils';
 import { ApiError } from '@/api/client';
 import { useLogin } from '@/api/hooks';
 import { BrandMark } from '@/components/BrandMark';
+import { LanguageLink } from '@/components/profile/LanguagePicker';
 import { ServerLink } from '@/components/ServerSheet';
 import { Button, Input, Screen, Text } from '@/components/ui';
 import { space } from '@/theme/tokens';
@@ -23,7 +25,10 @@ export default function LoginScreen() {
     setError(undefined);
     login.mutate(
       { email: email.trim(), password },
-      { onError: (e) => setError(e instanceof ApiError ? e.message : 'No pudimos iniciar sesión.') }
+      {
+        onError: (e) =>
+          setError(e instanceof ApiError ? e.message : t('No pudimos iniciar sesión.')),
+      }
     );
   };
 
@@ -31,13 +36,13 @@ export default function LoginScreen() {
     <Screen>
       <View style={styles.hero}>
         <BrandMark size={64} />
-        <Text variant="display">Bienvenido de vuelta</Text>
-        <Text tone="muted">Publica tareas o encuentra a quién ayudar cerca de ti.</Text>
+        <Text variant="display">{t('Bienvenido de vuelta')}</Text>
+        <Text tone="muted">{t('Publica tareas o encuentra a quién ayudar cerca de ti.')}</Text>
       </View>
 
       <View style={styles.form}>
         <Input
-          label="Correo electrónico"
+          label={t('Correo electrónico')}
           icon="mail-outline"
           value={email}
           onChangeText={setEmail}
@@ -51,7 +56,7 @@ export default function LoginScreen() {
         />
         <Input
           ref={passwordRef}
-          label="Contraseña"
+          label={t('Contraseña')}
           icon="lock-closed-outline"
           value={password}
           onChangeText={setPassword}
@@ -60,7 +65,7 @@ export default function LoginScreen() {
           autoComplete="current-password"
           returnKeyType="go"
           onSubmitEditing={submit}
-          placeholder="Tu contraseña"
+          placeholder={t('Tu contraseña')}
           right={
             <Pressable
               accessibilityRole="button"
@@ -68,7 +73,7 @@ export default function LoginScreen() {
               style={styles.toggleTouch}
             >
               <Text variant="caption" tone="primary" style={styles.toggle}>
-                {showPassword ? 'Ocultar' : 'Mostrar'}
+                {showPassword ? t('Ocultar') : t('Mostrar')}
               </Text>
             </Pressable>
           }
@@ -79,7 +84,7 @@ export default function LoginScreen() {
           </Text>
         ) : null}
         <Button
-          label="Ingresar"
+          label={t('Ingresar')}
           onPress={submit}
           loading={login.isPending}
           disabled={!canSubmit}
@@ -88,16 +93,17 @@ export default function LoginScreen() {
       </View>
 
       <View style={styles.footer}>
-        <Text tone="muted">¿Aún no tienes cuenta?</Text>
+        <Text tone="muted">{t('¿Aún no tienes cuenta?')}</Text>
         <Link href="/register" asChild>
           <Pressable accessibilityRole="link" style={styles.linkTouch}>
             <Text tone="primary" style={styles.link}>
-              Crear cuenta
+              {t('Crear cuenta')}
             </Text>
           </Pressable>
         </Link>
       </View>
 
+      <LanguageLink />
       <ServerLink />
     </Screen>
   );

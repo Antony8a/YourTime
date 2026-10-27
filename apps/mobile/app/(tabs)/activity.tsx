@@ -3,7 +3,7 @@ import { ActivityIndicator, FlatList, ScrollView, StyleSheet, View } from 'react
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { Application, Task, TaskStatus } from '@yourtime/shared-types';
-import { formatMoney, timeAgo } from '@yourtime/shared-utils';
+import { formatMoney, msg, t, timeAgo } from '@yourtime/shared-utils';
 import { flatten, useMyApplications, usePostedTasks } from '@/api/hooks';
 import { ConvertedAmount } from '@/components/money/Converted';
 import { TaskCard } from '@/components/task/TaskCard';
@@ -15,10 +15,10 @@ import { space } from '@/theme/tokens';
 type Tab = 'posted' | 'applied';
 
 const STATUS_FILTERS: { label: string; value: TaskStatus[] }[] = [
-  { label: 'Todas', value: ['open', 'assigned', 'completed', 'cancelled'] },
-  { label: 'Abiertas', value: ['open'] },
-  { label: 'En curso', value: ['assigned', 'en_route', 'in_progress'] },
-  { label: 'Finalizadas', value: ['completed'] },
+  { label: msg('Todas'), value: ['open', 'assigned', 'completed', 'cancelled'] },
+  { label: msg('Abiertas'), value: ['open'] },
+  { label: msg('En curso'), value: ['assigned', 'en_route', 'in_progress'] },
+  { label: msg('Finalizadas'), value: ['completed'] },
 ];
 
 export default function ActivityScreen() {
@@ -29,13 +29,13 @@ export default function ActivityScreen() {
   return (
     <View role="main" style={[styles.flex, { backgroundColor: colors.bg, paddingTop: insets.top }]}>
       <View style={styles.header}>
-        <Text variant="display">Actividad</Text>
+        <Text variant="display">{t('Actividad')}</Text>
         <Segmented
           value={tab}
           onChange={setTab}
           options={[
-            { value: 'posted', label: 'Mis tareas' },
-            { value: 'applied', label: 'Mis postulaciones' },
+            { value: 'posted', label: t('Mis tareas') },
+            { value: 'applied', label: t('Mis postulaciones') },
           ]}
         />
       </View>
@@ -80,7 +80,7 @@ function PostedList() {
           {STATUS_FILTERS.map((f, i) => (
             <Chip
               key={f.label}
-              label={f.label}
+              label={t(f.label)}
               selected={i === filterIndex}
               onPress={() => setFilterIndex(i)}
             />
@@ -96,22 +96,24 @@ function PostedList() {
         ) : query.isError ? (
           <EmptyState
             icon="cloud-offline-outline"
-            title="No pudimos cargar tus tareas"
-            actionLabel="Reintentar"
+            title={t('No pudimos cargar tus tareas')}
+            actionLabel={t('Reintentar')}
             onAction={() => void query.refetch()}
           />
         ) : (
           <EmptyState
             icon="clipboard-outline"
             title={
-              filterIndex === 0 ? 'Aún no has publicado tareas' : 'No hay tareas en este estado'
+              filterIndex === 0
+                ? t('Aún no has publicado tareas')
+                : t('No hay tareas en este estado')
             }
             message={
               filterIndex === 0
-                ? 'Cuando publiques una, aparecerá aquí con sus postulaciones.'
+                ? t('Cuando publiques una, aparecerá aquí con sus postulaciones.')
                 : undefined
             }
-            actionLabel={filterIndex === 0 ? 'Publicar una tarea' : undefined}
+            actionLabel={filterIndex === 0 ? t('Publicar una tarea') : undefined}
             onAction={filterIndex === 0 ? () => router.push('/publish') : undefined}
           />
         )
@@ -159,16 +161,16 @@ function AppliedList() {
         ) : query.isError ? (
           <EmptyState
             icon="cloud-offline-outline"
-            title="No pudimos cargar tus postulaciones"
-            actionLabel="Reintentar"
+            title={t('No pudimos cargar tus postulaciones')}
+            actionLabel={t('Reintentar')}
             onAction={() => void query.refetch()}
           />
         ) : (
           <EmptyState
             icon="paper-plane-outline"
-            title="Aún no te has postulado"
-            message="Explora las tareas cercanas y postúlate a las que te interesen."
-            actionLabel="Explorar tareas"
+            title={t('Aún no te has postulado')}
+            message={t('Explora las tareas cercanas y postúlate a las que te interesen.')}
+            actionLabel={t('Explorar tareas')}
             onAction={() => router.push('/')}
           />
         )
@@ -190,22 +192,28 @@ function ApplicationRow({
   onPress: () => void;
 }) {
   return (
-    <Card onPress={onPress} accessibilityLabel={`Postulación a ${application.task.title}`}>
+    <Card
+      onPress={onPress}
+      accessibilityLabel={t('Postulación a {title}', { title: application.task.title })}
+    >
       <View style={styles.rowHead}>
         <Text variant="heading" level={2} numberOfLines={2} style={styles.flex}>
           {application.task.title}
         </Text>
         <Badge
-          label={applicationStatusLabel[application.status]}
+          label={t(applicationStatusLabel[application.status])}
           tone={applicationStatusTone[application.status]}
         />
       </View>
       <Text variant="caption" tone="subtle">
-        {application.task.poster_name} · te postulaste {timeAgo(application.created_at)}
+        {t('{name} · te postulaste {when}', {
+          name: application.task.poster_name,
+          when: timeAgo(application.created_at),
+        })}
       </Text>
       <View style={styles.rowFoot}>
         <Text variant="caption" tone="muted">
-          Tu propuesta
+          {t('Tu propuesta')}
         </Text>
         <View style={styles.amounts}>
           <Text variant="bodyStrong" tone="primary">

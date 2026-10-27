@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react';
 import { StyleSheet, Switch, View } from 'react-native';
 import type { BudgetType, Task, TaskInput } from '@yourtime/shared-types';
-import { formatDateTime, fromMinor, parseAmount, toMinor } from '@yourtime/shared-utils';
+import { formatDateTime, fromMinor, msg, parseAmount, t, toMinor } from '@yourtime/shared-utils';
+import { categoryName } from '@/i18n/categories';
 import { useCategories, useUpdateMe } from '@/api/hooks';
 import { ApiError } from '@/api/client';
 import { useFeedback } from '@/components/feedback/FeedbackProvider';
@@ -16,11 +17,11 @@ type SchedulePreset = 'none' | 'keep' | 'today' | 'tomorrow' | 'in3' | 'week';
 
 const SCHEDULE_OPTIONS: { value: Exclude<SchedulePreset, 'keep'>; label: string; days: number }[] =
   [
-    { value: 'none', label: 'Sin fecha', days: -1 },
-    { value: 'today', label: 'Hoy', days: 0 },
-    { value: 'tomorrow', label: 'Mañana', days: 1 },
-    { value: 'in3', label: 'En 3 días', days: 3 },
-    { value: 'week', label: 'En una semana', days: 7 },
+    { value: 'none', label: msg('Sin fecha'), days: -1 },
+    { value: 'today', label: msg('Hoy'), days: 0 },
+    { value: 'tomorrow', label: msg('Mañana'), days: 1 },
+    { value: 'in3', label: msg('En 3 días'), days: 3 },
+    { value: 'week', label: msg('En una semana'), days: 7 },
   ];
 
 /** 9:00 local time, `days` from today. */
@@ -83,24 +84,24 @@ export function TaskForm({ task, submitLabel, loading, onSubmit, error }: TaskFo
     setPlace({ latitude: found.latitude, longitude: found.longitude, city: found.city });
     // First time setting a location? Remember it as the account location too.
     if (!user?.location) updateMe.mutate({ location: found });
-    toast('Ubicación actualizada.');
+    toast(t('Ubicación actualizada.'));
   };
 
   const submit = () => {
     const next: Record<string, string> = {};
-    if (!categoryId) next.category_id = 'Elige una categoría.';
+    if (!categoryId) next.category_id = t('Elige una categoría.');
     if (title.trim().length < 4)
-      next.title = 'Describe la tarea en pocas palabras (mínimo 4 letras).';
+      next.title = t('Describe la tarea en pocas palabras (mínimo 4 letras).');
     if (description.trim().length < 10)
-      next.description = 'Cuéntanos más detalles (mínimo 10 letras).';
+      next.description = t('Cuéntanos más detalles (mínimo 10 letras).');
 
     let budget: TaskInput['budget'] = { type: budgetType };
     if (budgetType !== 'negotiable') {
       const min = parseAmount(minText);
       const max = maxText.trim() ? parseAmount(maxText) : min;
-      if (min == null) next['budget.min_minor'] = 'Escribe un monto válido.';
+      if (min == null) next['budget.min_minor'] = t('Escribe un monto válido.');
       else if (max == null || max < min)
-        next['budget.max_minor'] = 'El máximo debe ser igual o mayor al mínimo.';
+        next['budget.max_minor'] = t('El máximo debe ser igual o mayor al mínimo.');
       else
         budget = {
           type: budgetType,
@@ -108,7 +109,7 @@ export function TaskForm({ task, submitLabel, loading, onSubmit, error }: TaskFo
           max_minor: toMinor(max, currency),
         };
     }
-    if (!isRemote && !place) next.location = 'Indica dónde será la tarea o márcala como remota.';
+    if (!isRemote && !place) next.location = t('Indica dónde será la tarea o márcala como remota.');
 
     setLocalErrors(next);
     if (Object.keys(next).length > 0) return;
@@ -135,12 +136,12 @@ export function TaskForm({ task, submitLabel, loading, onSubmit, error }: TaskFo
   return (
     <View style={styles.form}>
       <View style={styles.block}>
-        <Text variant="bodyStrong">Categoría</Text>
+        <Text variant="bodyStrong">{t('Categoría')}</Text>
         <View style={styles.wrap}>
           {categories.data?.map((c) => (
             <Chip
               key={c.id}
-              label={c.name}
+              label={categoryName(c.name)}
               icon={safeIcon(c.icon)}
               accent={c.color}
               selected={categoryId === c.id}
@@ -156,38 +157,38 @@ export function TaskForm({ task, submitLabel, loading, onSubmit, error }: TaskFo
       </View>
 
       <Input
-        label="Título"
+        label={t('Título')}
         value={title}
         onChangeText={setTitle}
-        placeholder="Ej: Arreglar una gotera en el baño"
+        placeholder={t('Ej: Arreglar una gotera en el baño')}
         maxLength={200}
         error={errors.title}
       />
       <Input
-        label="Descripción"
+        label={t('Descripción')}
         value={description}
         onChangeText={setDescription}
-        placeholder="Qué necesitas, medidas, herramientas, horarios…"
+        placeholder={t('Qué necesitas, medidas, herramientas, horarios…')}
         multiline
         maxLength={5000}
         error={errors.description}
       />
 
       <View style={styles.block}>
-        <Text variant="bodyStrong">Presupuesto</Text>
+        <Text variant="bodyStrong">{t('Presupuesto')}</Text>
         <Segmented
           value={budgetType}
           onChange={setBudgetType}
           options={(['fixed', 'hourly', 'negotiable'] as const).map((value) => ({
             value,
-            label: budgetTypeLabel[value],
+            label: t(budgetTypeLabel[value]),
           }))}
         />
         {budgetType !== 'negotiable' ? (
           <View style={styles.row}>
             <View style={styles.flex}>
               <Input
-                label={budgetType === 'hourly' ? 'Desde (por hora)' : 'Desde'}
+                label={budgetType === 'hourly' ? t('Desde (por hora)') : t('Desde')}
                 prefix={currency}
                 value={minText}
                 onChangeText={setMinText}
@@ -198,7 +199,7 @@ export function TaskForm({ task, submitLabel, loading, onSubmit, error }: TaskFo
             </View>
             <View style={styles.flex}>
               <Input
-                label="Hasta (opcional)"
+                label={t('Hasta (opcional)')}
                 prefix={currency}
                 value={maxText}
                 onChangeText={setMaxText}
@@ -210,31 +211,33 @@ export function TaskForm({ task, submitLabel, loading, onSubmit, error }: TaskFo
           </View>
         ) : (
           <Text variant="caption" tone="muted">
-            Quienes se postulen propondrán su precio y tú eliges.
+            {t('Quienes se postulen propondrán su precio y tú eliges.')}
           </Text>
         )}
         <Text variant="caption" tone="subtle">
-          Moneda: {currency}
           {task
-            ? ' (la tarea conserva la moneda con la que se publicó)'
-            : ' (la de tu cuenta, puedes cambiarla en tu perfil)'}
-          .
+            ? t('Moneda: {currency} (la tarea conserva la moneda con la que se publicó).', {
+                currency,
+              })
+            : t('Moneda: {currency} (la de tu cuenta, puedes cambiarla en tu perfil).', {
+                currency,
+              })}
         </Text>
       </View>
 
       <View style={styles.block}>
         <View style={styles.switchRow}>
           <View style={styles.flex}>
-            <Text variant="bodyStrong">Tarea remota</Text>
+            <Text variant="bodyStrong">{t('Tarea remota')}</Text>
             <Text variant="caption" tone="muted">
-              Se puede hacer a distancia, sin ir a un lugar.
+              {t('Se puede hacer a distancia, sin ir a un lugar.')}
             </Text>
           </View>
           <Switch
             value={isRemote}
             onValueChange={setIsRemote}
             trackColor={{ true: colors.primary, false: colors.border }}
-            accessibilityLabel="Tarea remota"
+            accessibilityLabel={t('Tarea remota')}
           />
         </View>
 
@@ -244,17 +247,18 @@ export function TaskForm({ task, submitLabel, loading, onSubmit, error }: TaskFo
               <Icon name="location" size={22} color={place ? 'primary' : 'textSubtle'} />
               <View style={styles.flex}>
                 <Text variant="bodyStrong">
-                  {place ? place.city || 'Ubicación guardada' : 'Sin ubicación'}
+                  {place ? place.city || t('Ubicación guardada') : t('Sin ubicación')}
                 </Text>
                 <Text variant="caption" tone="subtle">
-                  Quienes se postulen verán solo una zona aproximada. La dirección exacta la ve la
-                  persona que elijas.
+                  {t(
+                    'Quienes se postulen verán solo una zona aproximada. La dirección exacta la ve la persona que elijas.'
+                  )}
                 </Text>
               </View>
             </View>
             <View style={styles.placeActions}>
               <Button
-                label={place ? 'Actualizar con mi ubicación' : 'Usar mi ubicación'}
+                label={place ? t('Actualizar con mi ubicación') : t('Usar mi ubicación')}
                 icon="locate"
                 size="sm"
                 variant="secondary"
@@ -264,10 +268,10 @@ export function TaskForm({ task, submitLabel, loading, onSubmit, error }: TaskFo
             </View>
             <View style={styles.addressInput}>
               <Input
-                label="Dirección o referencia (opcional)"
+                label={t('Dirección o referencia (opcional)')}
                 value={address}
                 onChangeText={setAddress}
-                placeholder="Calle, barrio, punto de referencia"
+                placeholder={t('Calle, barrio, punto de referencia')}
                 maxLength={300}
               />
             </View>
@@ -281,11 +285,11 @@ export function TaskForm({ task, submitLabel, loading, onSubmit, error }: TaskFo
       </View>
 
       <View style={styles.block}>
-        <Text variant="bodyStrong">¿Para cuándo?</Text>
+        <Text variant="bodyStrong">{t('¿Para cuándo?')}</Text>
         <View style={styles.wrap}>
           {task?.scheduled_at ? (
             <Chip
-              label={`Mantener · ${formatDateTime(task.scheduled_at)}`}
+              label={t('Mantener · {value}', { value: formatDateTime(task.scheduled_at) })}
               selected={schedule === 'keep'}
               onPress={() => setSchedule('keep')}
             />
@@ -293,7 +297,7 @@ export function TaskForm({ task, submitLabel, loading, onSubmit, error }: TaskFo
           {SCHEDULE_OPTIONS.map((o) => (
             <Chip
               key={o.value}
-              label={o.label}
+              label={t(o.label)}
               selected={schedule === o.value}
               onPress={() => setSchedule(o.value)}
             />

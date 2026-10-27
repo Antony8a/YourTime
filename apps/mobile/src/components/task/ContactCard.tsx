@@ -1,5 +1,6 @@
 import { Linking, StyleSheet, View } from 'react-native';
 import type { Party } from '@yourtime/shared-types';
+import { t } from '@yourtime/shared-utils';
 import { RatingBadge } from '@/components/reviews/Stars';
 import { Avatar, Button, Card, Text } from '@/components/ui';
 import { useTheme } from '@/theme/ThemeProvider';
@@ -44,7 +45,7 @@ export function ContactCard({ title, party }: ContactCardProps) {
       <View style={styles.actions}>
         {party.phone ? (
           <Button
-            label="Llamar"
+            label={t('Llamar')}
             icon="call-outline"
             size="sm"
             variant="secondary"
@@ -53,7 +54,7 @@ export function ContactCard({ title, party }: ContactCardProps) {
         ) : null}
         {party.email ? (
           <Button
-            label="Escribir"
+            label={t('Escribir')}
             icon="mail-outline"
             size="sm"
             variant="secondary"

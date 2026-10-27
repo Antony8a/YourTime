@@ -1,11 +1,12 @@
 import { ScrollView, StyleSheet, View } from 'react-native';
 import {
-  PRESETS,
   canShift,
   formatRange,
   matchPreset,
   presetRange,
+  PRESETS,
   shiftRange,
+  t,
   type DateRange,
 } from '@yourtime/shared-utils';
 import { Chip, Icon, PressableScale, Text } from '@/components/ui';
@@ -44,12 +45,12 @@ export function PeriodBar({ range, today, onChange, onCustom }: PeriodBarProps) 
         style={styles.chipsScroll}
         contentContainerStyle={styles.chips}
         accessibilityRole="toolbar"
-        accessibilityLabel="Periodo"
+        accessibilityLabel={t('Periodo')}
       >
         {PRESETS.map((p) => (
           <Chip
             key={p.id}
-            label={p.label}
+            label={t(p.label)}
             selected={preset === p.id}
             onPress={() => {
               haptics.select();
@@ -58,7 +59,7 @@ export function PeriodBar({ range, today, onChange, onCustom }: PeriodBarProps) 
           />
         ))}
         <Chip
-          label="Elegir fechas"
+          label={t('Elegir fechas')}
           icon="calendar-outline"
           selected={preset === 'custom'}
           onPress={onCustom}
@@ -70,13 +71,13 @@ export function PeriodBar({ range, today, onChange, onCustom }: PeriodBarProps) 
       >
         <StepButton
           icon="chevron-back"
-          label="Periodo anterior"
+          label={t('Periodo anterior')}
           disabled={!canShift(range, -1, today)}
           onPress={() => step(-1)}
         />
         <PressableScale
           accessibilityRole="button"
-          accessibilityLabel={`Periodo: ${label}. Cambiar fechas`}
+          accessibilityLabel={t('Periodo: {label}. Cambiar fechas', { label })}
           onPress={onCustom}
           scaleTo={0.98}
           style={styles.label}
@@ -88,7 +89,7 @@ export function PeriodBar({ range, today, onChange, onCustom }: PeriodBarProps) 
         </PressableScale>
         <StepButton
           icon="chevron-forward"
-          label="Periodo siguiente"
+          label={t('Periodo siguiente')}
           disabled={!canShift(range, 1, today)}
           onPress={() => step(1)}
         />

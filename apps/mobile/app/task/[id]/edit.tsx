@@ -1,5 +1,6 @@
 import { View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { t } from '@yourtime/shared-utils';
 import { useTask, useUpdateTask } from '@/api/hooks';
 import { ScreenHeader } from '@/components/ScreenHeader';
 import { useFeedback } from '@/components/feedback/FeedbackProvider';
@@ -16,7 +17,7 @@ export default function EditTaskScreen() {
 
   return (
     <View style={{ flex: 1 }}>
-      <ScreenHeader title="Editar tarea" />
+      <ScreenHeader title={t('Editar tarea')} />
       <Screen noTopInset bottomInset={space.xl}>
         {query.isLoading ? (
           <View style={{ gap: space.md }}>
@@ -26,26 +27,26 @@ export default function EditTaskScreen() {
         ) : !query.data ? (
           <EmptyState
             icon="alert-circle-outline"
-            title="No pudimos cargar la tarea"
-            actionLabel="Reintentar"
+            title={t('No pudimos cargar la tarea')}
+            actionLabel={t('Reintentar')}
             onAction={() => void query.refetch()}
           />
         ) : query.data.status !== 'open' || !query.data.is_owner ? (
           <EmptyState
             icon="lock-closed-outline"
-            title="Esta tarea ya no se puede editar"
-            message="Solo puedes editar tus tareas mientras estén abiertas."
+            title={t('Esta tarea ya no se puede editar')}
+            message={t('Solo puedes editar tus tareas mientras estén abiertas.')}
           />
         ) : (
           <TaskForm
             task={query.data}
-            submitLabel="Guardar cambios"
+            submitLabel={t('Guardar cambios')}
             loading={update.isPending}
             error={update.error}
             onSubmit={(input) =>
               update.mutate(input, {
                 onSuccess: () => {
-                  toast('Cambios guardados.');
+                  toast(t('Cambios guardados.'));
                   router.back();
                 },
               })

@@ -6,6 +6,7 @@ import {
   formatBudget,
   formatMoney,
   roundForDisplay,
+  t,
 } from '@yourtime/shared-utils';
 import { useRates } from '@/api/hooks';
 import { Text } from '@/components/ui';
@@ -58,7 +59,7 @@ function Line({ text, style }: LineProps & { text: string }) {
       variant="caption"
       tone="subtle"
       style={[styles.line, style]}
-      accessibilityLabel={`Aproximadamente ${text} en tu moneda`}
+      accessibilityLabel={t('Aproximadamente {text} en tu moneda', { text })}
     >
       ≈ {text}
     </Text>

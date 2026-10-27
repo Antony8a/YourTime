@@ -1,11 +1,11 @@
 import { StyleSheet, View } from 'react-native';
 import type { BalanceSide, BalanceTotal } from '@yourtime/shared-types';
-import { SUPPORTED_CURRENCIES, formatMoney, roundForDisplay } from '@yourtime/shared-utils';
+import { formatMoney, roundForDisplay, SUPPORTED_CURRENCIES, t, tn } from '@yourtime/shared-utils';
 import { Card, Icon, Text, type IconName } from '@/components/ui';
 import { useTheme } from '@/theme/ThemeProvider';
 import { radius, space } from '@/theme/tokens';
 
-const services = (n: number) => `${n} ${n === 1 ? 'servicio' : 'servicios'}`;
+const services = (n: number) => tn(n, '{count} servicio', '{count} servicios');
 
 /** The money format already carries the symbol or code ("US$ 85", "45.000 COP"), so none is repeated. */
 function Amount({
@@ -68,7 +68,7 @@ function SummaryCard({
 
       {showConverted ? (
         <Text variant="caption" tone="muted" style={styles.amount}>
-          {side.converted!.partial ? 'Al menos ' : ''}≈{' '}
+          {side.converted!.partial ? t('Al menos ≈') : '≈'}{' '}
           {formatMoney(
             roundForDisplay(side.converted!.total_minor, side.converted!.currency),
             side.converted!.currency
@@ -97,14 +97,14 @@ export function SummaryCards({
   return (
     <View style={styles.pair}>
       <SummaryCard
-        title="Ganado"
+        title={t('Ganado')}
         icon="trending-up"
         tone="success"
         side={earned}
         emptyCurrency={currency}
       />
       <SummaryCard
-        title="Gastado"
+        title={t('Gastado')}
         icon="trending-down"
         tone="primary"
         side={spent}
@@ -156,17 +156,25 @@ export function NetCard({
   return (
     <Card>
       <Text variant="label" tone="subtle" style={styles.netLabel}>
-        BALANCE NETO
+        {t('BALANCE NETO')}
       </Text>
 
       {showTotal ? (
         <View
           style={styles.netTotal}
           accessible
-          accessibilityLabel={`En tu moneda, ${currency}: ${netAll >= 0 ? 'a favor' : 'en contra'} aproximadamente ${formatMoney(roundForDisplay(Math.abs(netAll), currency), currency)}`}
+          accessibilityLabel={t(
+            netAll >= 0
+              ? 'En tu moneda, {currency}: a favor aproximadamente {amount}'
+              : 'En tu moneda, {currency}: en contra aproximadamente {amount}',
+            {
+              currency,
+              amount: formatMoney(roundForDisplay(Math.abs(netAll), currency), currency),
+            }
+          )}
         >
           <Text variant="caption" tone="muted">
-            En tu moneda ({currency}), aproximado
+            {t('En tu moneda ({currency}), aproximado', { currency })}
           </Text>
           <Text
             variant="display"
@@ -179,8 +187,10 @@ export function NetCard({
           </Text>
           <Text variant="caption" tone="subtle">
             {approximate
-              ? 'Usa el cambio del día de cada servicio; en servicios antiguos, el más cercano disponible.'
-              : 'Usa el tipo de cambio del día en que se finalizó cada servicio.'}
+              ? t(
+                  'Usa el cambio del día de cada servicio; en servicios antiguos, el más cercano disponible.'
+                )
+              : t('Usa el tipo de cambio del día en que se finalizó cada servicio.')}
           </Text>
         </View>
       ) : null}
@@ -198,10 +208,16 @@ export function NetCard({
               key={c}
               style={styles.netRow}
               accessible
-              accessibilityLabel={`${c}: ${net >= 0 ? 'a favor' : 'en contra'} ${formatMoney(Math.abs(net), c)}`}
+              accessibilityLabel={t(
+                net >= 0 ? '{currency}: a favor {amount}' : '{currency}: en contra {amount}',
+                {
+                  currency: c,
+                  amount: formatMoney(Math.abs(net), c),
+                }
+              )}
             >
               <Text tone="muted" numberOfLines={1} style={styles.netName}>
-                {SUPPORTED_CURRENCIES.find((x) => x.code === c)?.name ?? c}
+                {t(SUPPORTED_CURRENCIES.find((x) => x.code === c)?.name ?? c)}
               </Text>
               <Text
                 variant={mixed ? 'heading' : 'title'}

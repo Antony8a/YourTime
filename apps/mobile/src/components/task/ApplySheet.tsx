@@ -6,6 +6,7 @@ import {
   formatDistance,
   fromMinor,
   parseAmount,
+  t,
   toMinor,
 } from '@yourtime/shared-utils';
 import { ApiError } from '@/api/client';
@@ -46,7 +47,7 @@ export function ApplySheet({ task, visible, onClose }: ApplySheetProps) {
   const submit = () => {
     const amount = parseAmount(priceText);
     if (amount == null) {
-      setError('Escribe el precio que propones.');
+      setError(t('Escribe el precio que propones.'));
       return;
     }
     setError(undefined);
@@ -54,11 +55,11 @@ export function ApplySheet({ task, visible, onClose }: ApplySheetProps) {
       { price_minor: toMinor(amount, currency), message: message.trim() || undefined },
       {
         onSuccess: () => {
-          toast('Postulación enviada. Quien publicó la tarea decidirá.');
+          toast(t('Postulación enviada. Quien publicó la tarea decidirá.'));
           onClose();
         },
         onError: (e) =>
-          setError(e instanceof ApiError ? e.message : 'No pudimos enviar tu postulación.'),
+          setError(e instanceof ApiError ? e.message : t('No pudimos enviar tu postulación.')),
       }
     );
   };
@@ -66,21 +67,23 @@ export function ApplySheet({ task, visible, onClose }: ApplySheetProps) {
   const farAway = task.within_preferred_radius === false && task.distance_km != null;
 
   return (
-    <Sheet visible={visible} onClose={onClose} title="Postularme" subtitle={task.title}>
+    <Sheet visible={visible} onClose={onClose} title={t('Postularme')} subtitle={task.title}>
       {farAway ? (
         <Text variant="caption" tone="warning">
-          Esta tarea queda a {formatDistance(task.distance_km!)}, fuera de tu radio preferido.
-          Puedes postularte igual; confirma que te sirve.
+          {t(
+            'Esta tarea queda a {distance}, fuera de tu radio preferido. Puedes postularte igual; confirma que te sirve.',
+            { distance: formatDistance(task.distance_km!) }
+          )}
         </Text>
       ) : null}
       <Input
-        label={`Tu precio (${currency})`}
+        label={t('Tu precio ({currency})', { currency })}
         prefix={currency}
         value={priceText}
         onChangeText={setPriceText}
         keyboardType="decimal-pad"
         placeholder="0"
-        hint={`Presupuesto de la tarea: ${formatBudget(task.budget)}`}
+        hint={t('Presupuesto de la tarea: {value}', { value: formatBudget(task.budget) })}
         error={error}
       />
       {typed != null ? (
@@ -91,16 +94,18 @@ export function ApplySheet({ task, visible, onClose }: ApplySheetProps) {
         <ConvertedBudget budget={task.budget} />
       )}
       <Input
-        label="Mensaje (opcional)"
+        label={t('Mensaje (opcional)')}
         value={message}
         onChangeText={setMessage}
         multiline
         maxLength={2000}
-        placeholder="Cuéntale por qué eres buena opción: experiencia, disponibilidad, herramientas…"
+        placeholder={t(
+          'Cuéntale por qué eres buena opción: experiencia, disponibilidad, herramientas…'
+        )}
       />
       <View style={{ gap: space.sm }}>
         <Button
-          label="Enviar postulación"
+          label={t('Enviar postulación')}
           icon="paper-plane-outline"
           onPress={submit}
           loading={apply.isPending}

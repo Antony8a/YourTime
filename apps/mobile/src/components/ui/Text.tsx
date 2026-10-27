@@ -6,14 +6,7 @@ import { typography, type Palette, type TextVariant } from '@/theme/tokens';
 const HEADING_LEVEL: Partial<Record<TextVariant, 1 | 2 | 3>> = { display: 1, title: 2, heading: 3 };
 
 export type TextTone =
-  | 'default'
-  | 'muted'
-  | 'subtle'
-  | 'primary'
-  | 'success'
-  | 'warning'
-  | 'danger'
-  | 'onPrimary';
+  'default' | 'muted' | 'subtle' | 'primary' | 'success' | 'warning' | 'danger' | 'onPrimary';
 
 const toneColor: Record<TextTone, keyof Palette> = {
   default: 'text',
