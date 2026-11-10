@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>YourTime</title>
+<meta name="description" content="Pide ayuda cerca de ti, o gana ayudando.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap">
+<style>
+  :root {
+    --bg: #0B0E17; --card: #151A2B; --line: #262C44; --text: #F1F3FF;
+    --muted: #A9B0CC; --primary: #8F95FF; --accent: #F5B942;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Outfit', system-ui, sans-serif; line-height: 1.5; }
+  main { max-width: 1040px; margin: 0 auto; padding: 56px 16px 64px; }
+  .brand { display: flex; align-items: center; gap: 12px; font-size: 24px; font-weight: 700; }
+  .logo { width: 44px; height: 44px; border-radius: 14px; background: var(--primary); display: grid; place-items: center; }
+  h1 { font-size: clamp(36px, 7vw, 60px); line-height: 1.05; letter-spacing: -1.5px; margin: 28px 0 16px; }
+  .lead { font-size: 20px; color: var(--muted); max-width: 640px; margin: 0; }
+  .cta { display: inline-flex; align-items: center; gap: 10px; margin-top: 28px; padding: 14px 24px; border-radius: 14px;
+         background: var(--primary); color: #0B0E17; font-weight: 700; font-size: 18px; text-decoration: none; }
+  .note { color: var(--muted); font-size: 15px; margin-top: 10px; }
+  .shots { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin: 48px 0; }
+  .shots img { width: 100%; border-radius: 22px; border: 1px solid var(--line); display: block; }
+  h2 { font-size: 30px; margin: 48px 0 20px; }
+  .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+  .step { background: var(--card); border: 1px solid var(--line); border-radius: 20px; padding: 22px; }
+  .step b { display: block; font-size: 20px; margin-bottom: 6px; }
+  .step span { color: var(--muted); }
+  .step .n { color: var(--primary); font-weight: 700; font-size: 14px; letter-spacing: 1px; }
+  footer { margin-top: 56px; color: var(--muted); font-size: 15px; }
+  a { color: var(--primary); }
+</style>
+</head>
+<body>
+<main>
+  <div class="brand">
+    <div class="logo"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#0B0E17" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
+    YourTime
+  </div>
+  <h1>Pide ayuda cerca de ti, o gana ayudando.</h1>
+  <p class="lead">Publica lo que necesitas con tu rango de precio y el horario en que puedes recibir el servicio. Quienes se postulan proponen su precio y su hora, y tú eliges.</p>
+  <a class="cta" href="https://github.com/Antony8a/YourTime/releases/latest">Descargar para Android</a>
+  <p class="note">Versión de pruebas · Android 7.0 o superior</p>
+
+  <div class="shots">
+    <img src="capturas/explorar.png" alt="Explorar tareas cercanas">
+    <img src="capturas/postularse.png" alt="Postularse con precio y hora">
+    <img src="capturas/servicio.png" alt="Pantalla del servicio con la hora de salida">
+    <img src="capturas/perfil.png" alt="Perfil con fotos de trabajos">
+  </div>
+
+  <h2>Así funciona</h2>
+  <div class="steps">
+    <div class="step"><span class="n">1</span><b>Publica</b><span>Qué necesitas, cuánto pagas y cuándo puedes recibir el servicio.</span></div>
+    <div class="step"><span class="n">2</span><b>Elige</b><span>Compara precio, hora propuesta, calificación, puntualidad y fotos de trabajos.</span></div>
+    <div class="step"><span class="n">3</span><b>Sigue el servicio</b><span>Mira en el mapa cuándo llega. Si te eligen a ti, la app te avisa cuándo salir.</span></div>
+    <div class="step"><span class="n">4</span><b>Califica</b><span>Los dos se califican y las reseñas ayudan a elegir mejor.</span></div>
+  </div>
+
+  <footer>
+    <a href="https://github.com/Antony8a/YourTime#gu%C3%ADa">Guía de uso</a> ·
+    Español, English, Português, Français ·
+    El código de YourTime es privado.
+  </footer>
+</main>
+</body>
+</html>
