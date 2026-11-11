@@ -42,6 +42,19 @@ Las versiones nuevas se instalan encima de la anterior sin perder tu cuenta.
 - [Billetera y comisión](guia/billetera.md)
 - [Tu perfil: foto, "Sobre mí" y reseñas](guia/perfil.md)
 
+## Tecnologías
+
+| | |
+| --- | --- |
+| **App** | React Native · Expo · TypeScript · TanStack Query · Zustand |
+| **API** | Go · PostgreSQL · JWT · Docker |
+| **Mapas** | OpenStreetMap · OSRM (rutas) |
+| **Calidad** | Pruebas unitarias y de integración · GitHub Actions · Conventional Commits |
+| **Otros** | Monorepo con pnpm · 4 idiomas · notificaciones programadas · GPS |
+
+Arquitectura, decisiones técnicas y cómo se prueba: **[Cómo está construido YourTime](TECNOLOGIA.md)**.
+El código fuente es privado y está disponible para revisión técnica a solicitud.
+
 ## Preguntas frecuentes
 
 **¿Cuánto cuesta?** Postularse es gratis. Solo si te eligen se descuenta una comisión del precio
@@ -57,4 +70,5 @@ guarda el teléfono.
 
 ---
 
-El código de YourTime es privado. Este repositorio solo muestra la app y la distribuye.
+El código de YourTime es privado. Este repositorio muestra la app, cómo está construida y la
+distribuye.
